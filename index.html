@@ -29,7 +29,7 @@
         .btn { pointer-events: auto; width: 42vw; max-width: 180px; padding: 18px 0; font-size: 20px; font-weight: 900; background: #FFB347; border: 4px solid #ffffff; border-radius: 20px; color: white; cursor: pointer; text-align: center; box-shadow: 0 8px 0 #d18200; transition: transform 0.05s ease; }
         .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #d18200; }
 
-        /* Start Screen Overlay */
+        /* Start Screen */
         #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #87CEEB, #FFB6C1); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
         #start-btn { padding: 15px 50px; font-size: 28px; font-weight: 900; background: #4CAF50; border: 5px solid #fff; border-radius: 15px; color: white; cursor: pointer; box-shadow: 0 8px 0 #2E7D32; animation: pulse 1.5s infinite; margin-top: 20px;}
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -43,7 +43,7 @@
     <div id="start-screen">
         <h1 style="color:white; font-size: 45px; text-shadow: 3px 3px 0 #333; margin: 0; text-align: center;">NGANTOR<br>CINEMATIC RUSH</h1>
         <button id="start-btn">PLAY</button>
-        <p style="color: #333; font-weight: bold; margin-top: 20px; text-align: center;">Siang/Malam, Suara Mesin, Asap & Koin Emas!</p>
+        <p style="color: #333; font-weight: bold; margin-top: 20px; text-align: center;">Kini dengan Lampu Motor di Malam Hari!</p>
     </div>
 
     <div id="ui-container">
@@ -71,7 +71,6 @@
             const bgm = document.getElementById('bgm');
             bgm.volume = 0.2; bgm.play().catch(e => console.log(e));
 
-            // Procedural Engine Sound
             engineOsc = audioCtx.createOscillator();
             const filter = audioCtx.createBiquadFilter();
             engineGain = audioCtx.createGain();
@@ -82,16 +81,13 @@
             filter.frequency.setValueAtTime(150, audioCtx.currentTime);
             engineGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
 
-            engineOsc.connect(filter);
-            filter.connect(engineGain);
-            engineGain.connect(audioCtx.destination);
+            engineOsc.connect(filter); filter.connect(engineGain); engineGain.connect(audioCtx.destination);
             engineOsc.start();
         }
 
         function playSfx(type) {
             if(!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             
             if (type === 'coin') {
@@ -110,7 +106,7 @@
         }
 
         // ==========================================
-        // 2. SCENE, CAMERA, LIGHTING (CINEMATIC)
+        // 2. SCENE, CAMERA, LIGHTING
         // ==========================================
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x87CEEB, 0.008);
@@ -123,15 +119,13 @@
         renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-        scene.add(hemiLight);
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6); scene.add(hemiLight);
         
         const sunLight = new THREE.DirectionalLight(0xfffaed, 1.2);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        // Ground & Road (Anti Z-Fighting Layering)
         const ground = new THREE.Mesh(new THREE.PlaneGeometry(250, 300), new THREE.MeshStandardMaterial({ color: 0x6db33f, flatShading: true }));
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
         
@@ -147,15 +141,13 @@
         for (let laneX of [-2, 2]) {
             for (let z = -150; z < 50; z += 15) {
                 const line = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 6), new THREE.MeshBasicMaterial({ color: 0xffcc00 }));
-                line.rotation.x = -Math.PI / 2; line.position.set(laneX, 0.03, z); 
-                scene.add(line); lines.push(line);
+                line.rotation.x = -Math.PI / 2; line.position.set(laneX, 0.03, z); scene.add(line); lines.push(line);
             }
         }
 
         // ==========================================
         // 3. GENERATOR OBJEK 3D (LOW POLY)
         // ==========================================
-        // Pegunungan & Awan Background
         function createMountains() {
             const mountGroup = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0x4a853b, flatShading: true });
@@ -184,107 +176,119 @@
             scene.add(cloudGroup); clouds.push(cloudGroup);
         }
 
-        // Hewan
+        // Hewan Low Poly / Voxel Style
         function createCow() {
             const group = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 2.5), new THREE.MeshStandardMaterial({color: 0xffffff}));
-            body.position.y = 1; body.castShadow = true; group.add(body);
-            const spot = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.8, 1), new THREE.MeshStandardMaterial({color: 0x111111}));
-            spot.position.set(0, 1, 0.2); group.add(spot);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1), new THREE.MeshStandardMaterial({color: 0xffffff}));
-            head.position.set(0, 1.8, -1.5); head.castShadow = true; group.add(head);
+            const matWhite = new THREE.MeshStandardMaterial({color: 0xffffff, flatShading: true});
+            const matBlack = new THREE.MeshStandardMaterial({color: 0x222222, flatShading: true});
+            const matPink = new THREE.MeshStandardMaterial({color: 0xffb6c1, flatShading: true});
+            
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 2.2), matWhite);
+            body.position.y = 1.2; body.castShadow = true; group.add(body);
+            
+            const spot1 = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.8, 0.8), matBlack);
+            spot1.position.set(0, 1.2, 0.4); group.add(spot1);
+            
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), matWhite);
+            head.position.set(0, 1.8, -1.2); head.castShadow = true; group.add(head);
+            
+            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), matPink);
+            snout.position.set(0, 1.6, -1.6); group.add(snout);
+            
+            for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), matBlack);
+                leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
+            }
             group.userData = { type: 'animal' }; return group;
         }
 
         function createSheep() {
             const group = new THREE.Group();
-            const wool = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8, 0), new THREE.MeshStandardMaterial({color: 0xf4f4f4, flatShading: true}));
-            wool.position.y = 0.8; wool.castShadow = true; group.add(wool);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.6), new THREE.MeshStandardMaterial({color: 0x222222}));
-            head.position.set(0, 1, -0.7); head.castShadow = true; group.add(head);
+            const matWool = new THREE.MeshStandardMaterial({color: 0xf4f4f4, flatShading: true});
+            const matDark = new THREE.MeshStandardMaterial({color: 0x333333, flatShading: true});
+            
+            const wool = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.6), matWool);
+            wool.position.y = 1.0; wool.castShadow = true; group.add(wool);
+            
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), matDark);
+            head.position.set(0, 1.3, -0.9); head.castShadow = true; group.add(head);
+            
+            for(let x of [-0.4, 0.4]) for(let z of [-0.5, 0.5]) {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), matDark);
+                leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
+            }
             group.userData = { type: 'animal' }; return group;
         }
 
-        // Fake Lampu Jalan (Tanpa membebani WebGL limit Light)
-        function createStreetLight(side) {
-            const group = new THREE.Group();
-            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 6), new THREE.MeshStandardMaterial({color: 0x444444}));
-            pole.position.y = 3; pole.castShadow = true; group.add(pole);
-            const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.5), new THREE.MeshStandardMaterial({color: 0x444444}));
-            arm.rotation.z = Math.PI / 2; arm.position.set(side === 1 ? -1 : 1, 5.8, 0); group.add(arm);
-            
-            const bulbMat = new THREE.MeshBasicMaterial({color: 0x222222});
-            const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.4), bulbMat);
-            bulb.position.set(side === 1 ? -2 : 2, 5.7, 0); group.add(bulb);
-            
-            // Fake Sorotan Cahaya Transparan
-            const beamMat = new THREE.MeshBasicMaterial({ color: 0xfffaed, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
-            const beam = new THREE.Mesh(new THREE.ConeGeometry(2.5, 6, 8, 1, true), beamMat);
-            beam.position.set(side === 1 ? -2 : 2, 2.8, 0); group.add(beam);
-
-            group.userData = { isLight: true, bulbMat: bulbMat, beamMat: beamMat }; return group;
-        }
-
-        // Variasi Rintangan & Mobil
-        function createCar(color) {
-            const group=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,1,4),new THREE.MeshStandardMaterial({color:color}));
-            body.position.y=0.8; body.castShadow=true; group.add(body);
-            const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.8,2),new THREE.MeshStandardMaterial({color:0xffffff}));
-            cabin.position.set(0,1.7,-0.2); group.add(cabin);
-            group.userData={type:'car'}; return group;
-        }
-        function createRamp() { const r=new THREE.Mesh(new THREE.BoxGeometry(3,0.2,4),new THREE.MeshStandardMaterial({color:0x8B4513})); r.rotation.x=Math.PI/12; r.position.y=0.5; r.userData={type:'ramp'}; return r; }
-        function createOil() { const o=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.05,12),new THREE.MeshBasicMaterial({color:0x111})); o.position.y=0.05; o.userData={type:'oil'}; return o; }
-        
-        // Rel & Kereta Api
-        function createTrainCrossing() {
-            const group = new THREE.Group();
-            const railGroup = new THREE.Group();
-            const ironMat = new THREE.MeshStandardMaterial({color: 0x999999});
-            const woodMat = new THREE.MeshStandardMaterial({color: 0x5c4033});
-            for(let i=0; i<5; i++){
-                const wood = new THREE.Mesh(new THREE.BoxGeometry(14, 0.1, 0.6), woodMat);
-                wood.position.set(0, 0.03, i*1.5 - 3); railGroup.add(wood);
-            }
-            const rail1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 8), ironMat); rail1.position.set(-2, 0.1, 0); railGroup.add(rail1);
-            const rail2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 8), ironMat); rail2.position.set(2, 0.1, 0); railGroup.add(rail2);
-            group.add(railGroup);
-
-            const train = new THREE.Mesh(new THREE.BoxGeometry(45, 4, 3.5), new THREE.MeshStandardMaterial({color: 0xcccccc}));
-            train.position.set(40, 2, 0); train.castShadow = true; group.add(train);
-            
-            group.userData = { type: 'train_crossing', trainObj: train }; return group;
-        }
-
-        // Koin
+        // Koin Emas (Diubah materialnya agar terang)
         function createCoin() {
-            const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.15, 16), new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.3, metalness: 0.8 }));
+            const coin = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.6, 0.6, 0.15, 10), 
+                new THREE.MeshLambertMaterial({ color: 0xFFD700, emissive: 0x443300, flatShading: true })
+            );
             coin.rotation.x = Math.PI / 2; coin.position.y = 1.2; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin;
         }
 
-        // UI Efek Floating Score
-        function showFloatingScore(text, color) {
-            const floatText = document.createElement('div');
-            floatText.className = 'floating-score';
-            floatText.innerText = text;
-            floatText.style.color = color || '#FFD700';
-            floatText.style.left = '50%';
-            floatText.style.top = '40%';
-            document.body.appendChild(floatText);
-            setTimeout(() => floatText.remove(), 1000);
+        // Mobil, Jumpingan, Oli, Pohon, dll (Sama seperti sebelumnya)
+        function createCar(color) {
+            const group=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.4,4),new THREE.MeshStandardMaterial({color:color, flatShading:true}));
+            body.position.y=0.9; body.castShadow=true; group.add(body);
+            const top=new THREE.Mesh(new THREE.BoxGeometry(2,1,2.2),new THREE.MeshStandardMaterial({color:0x222222, flatShading:true}));
+            top.position.set(0,1.8,-0.2); group.add(top); group.userData={type:'car'}; return group;
+        }
+        function createPineTree() {
+            const group = new THREE.Group();
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), new THREE.MeshStandardMaterial({ color: 0x6e4726, flatShading: true }));
+            trunk.position.y = 1; trunk.castShadow = true; group.add(trunk);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, flatShading: true });
+            [{r: 2, h: 2.5, y: 2.2}, {r: 1.6, h: 2, y: 3.4}, {r: 1.1, h: 1.8, y: 4.4}].forEach(l => {
+                const c = new THREE.Mesh(new THREE.ConeGeometry(l.r, l.h, 5), mat); c.position.y = l.y; c.castShadow = true; group.add(c);
+            }); return group;
+        }
+        function createRamp() { const r=new THREE.Mesh(new THREE.BoxGeometry(3,0.2,4),new THREE.MeshStandardMaterial({color:0x8B4513, flatShading:true})); r.rotation.x=Math.PI/12; r.position.y=0.5; r.userData={type:'ramp'}; return r; }
+        function createOil() { const o=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.05,12),new THREE.MeshBasicMaterial({color:0x111111})); o.position.y=0.05; o.userData={type:'oil'}; return o; }
+
+        let streetLights = [];
+        function createStreetLight(side) {
+            const group = new THREE.Group();
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 6, 6), new THREE.MeshStandardMaterial({ color: 0x444444, flatShading: true }));
+            pole.position.y = 3; pole.castShadow = true; group.add(pole);
+            const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x444444, flatShading: true }));
+            arm.rotation.z = Math.PI / 2; arm.position.set(side === 1 ? -1 : 1, 5.8, 0); group.add(arm);
+            const bulbMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.4), bulbMat);
+            bulb.position.set(side === 1 ? -2 : 2, 5.7, 0); group.add(bulb);
+            const beamMat = new THREE.MeshBasicMaterial({ color: 0xfffaed, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
+            const beam = new THREE.Mesh(new THREE.ConeGeometry(2.5, 6, 8, 1, true), beamMat);
+            beam.position.set(side === 1 ? -2 : 2, 2.8, 0); group.add(beam);
+            group.userData = { isLight: true, bulbMat: bulbMat, beamMat: beamMat }; return group;
         }
 
         // ==========================================
-        // 4. GAME VARIABLES, PLAYER, SMOKE FX
+        // 4. GAME VARIABLES, PLAYER, & LAMPU MOTOR
         // ==========================================
         let speed = 0.6; let score = 0; let packageCount = 0;
         let obstacles = []; let packages = []; let scenery = []; let smokeParticles = [];
-        let playerTargetX = 0; let isGameOver = false; let gameStarted = false; let trainEventActive = false;
+        let playerTargetX = 0; let isGameOver = false; let gameStarted = false;
         
         let playerVelocityY = 0; let isJumping = false; const gravity = -0.015;
         let dayTime = Math.PI / 2; let isNight = false;
 
         let playerGroup = new THREE.Group(); scene.add(playerGroup);
+        
+        // --- LAMPU MOTOR (Player Lights) ---
+        // Lampu penerang karakter agar tidak gelap
+        const playerAmbientLight = new THREE.PointLight(0xffffff, 0, 5);
+        playerAmbientLight.position.set(0, 2, 0);
+        playerGroup.add(playerAmbientLight);
+
+        // Lampu Sorot Jalan Depan
+        const playerHeadLight = new THREE.SpotLight(0xfffaed, 0, 40, Math.PI/4, 0.5, 1);
+        playerHeadLight.position.set(0, 1, 0.5);
+        playerHeadLight.target.position.set(0, 0, -15);
+        playerGroup.add(playerHeadLight);
+        playerGroup.add(playerHeadLight.target);
+
         let playerModel; let mixer; const clock = new THREE.Clock();
 
         const loader = new THREE.GLTFLoader();
@@ -297,7 +301,6 @@
             if (gltf.animations.length > 0) { mixer = new THREE.AnimationMixer(playerModel); mixer.clipAction(gltf.animations[0]).play(); }
         });
 
-        // Kontrol
         function moveLeft() { if(playerTargetX > -4 && !isJumping) playerTargetX -= 4; }
         function moveRight() { if(playerTargetX < 4 && !isJumping) playerTargetX += 4; }
         window.addEventListener('keydown', (e) => { if(e.key==='ArrowLeft'||e.key==='a') moveLeft(); if(e.key==='ArrowRight'||e.key==='d') moveRight(); });
@@ -306,10 +309,16 @@
         
         document.getElementById('start-btn').addEventListener('click', () => {
             document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('ui-container').style.display = 'block'; 
-            document.getElementById('controls').style.display = 'flex';
+            document.getElementById('ui-container').style.display = 'block'; document.getElementById('controls').style.display = 'flex';
             initAudio(); gameStarted = true; animate();
         });
+
+        function showFloatingScore(text, color) {
+            const floatText = document.createElement('div');
+            floatText.className = 'floating-score'; floatText.innerText = text; floatText.style.color = color || '#FFD700';
+            floatText.style.left = '50%'; floatText.style.top = '40%';
+            document.body.appendChild(floatText); setTimeout(() => floatText.remove(), 1000);
+        }
 
         // ==========================================
         // 5. GAME LOOP UTAMA
@@ -322,7 +331,6 @@
             if (mixer) mixer.update(clock.getDelta());
             frameCount++;
             
-            // Audio RPM Mesin
             if (audioCtx && engineOsc) {
                 const currentPitch = 40 + ((speed - 0.6) * 160); 
                 engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1);
@@ -333,7 +341,7 @@
             const sunY = Math.sin(dayTime); const sunZ = Math.cos(dayTime);
             sunLight.position.set(20, sunY * 50, sunZ * 50);
 
-            const colorDay = new THREE.Color(0x7ec0ee); const colorSunset = new THREE.Color(0xff8c42); const colorNight = new THREE.Color(0x05051a);
+            const colorDay = new THREE.Color(0x7ec0ee); const colorSunset = new THREE.Color(0xff8c42); const colorNight = new THREE.Color(0x0a0a1a);
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
@@ -349,8 +357,17 @@
             }
             scene.background = skyColor; scene.fog.color = skyColor;
 
-            // --- PERGERAKAN PLAYER ---
-            playerGroup.position.x += (playerTargetX - playerGroup.position.x) * 0.15;
+            // --- LAMPU MOTOR ON/OFF OTOMATIS ---
+            if (isNight) {
+                playerAmbientLight.intensity = 0.6; // Menerangi karakter
+                playerHeadLight.intensity = 2.0; // Sorot jalan
+            } else {
+                playerAmbientLight.intensity = 0;
+                playerHeadLight.intensity = 0;
+            }
+
+            // Pergerakan Motor
+            playerGroup.position.x += (playerTargetX - playerGroup.position.x) * 0.18;
             playerGroup.position.y += playerVelocityY;
             if (playerGroup.position.y > 0) {
                 playerVelocityY += gravity; isJumping = true;
@@ -360,10 +377,9 @@
             camera.position.y = 5.5 + (playerGroup.position.y * 0.4);
 
             // --- SPAWNER LINGKUNGAN ---
-            if (frameCount % 8 === 0) {
-                const side = Math.random() > 0.5 ? 1 : -1;
-                const tree = new THREE.Mesh(new THREE.ConeGeometry(1.5, 4, 5), new THREE.MeshStandardMaterial({color: 0x2d6a4f, flatShading:true}));
-                tree.position.set(side * (Math.random() * 10 + 8), 2, -180); scene.add(tree); scenery.push(tree);
+            if (frameCount % 10 === 0) {
+                const tree = createPineTree(); tree.position.set((Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 8), 2, -180); 
+                scene.add(tree); scenery.push(tree);
             }
             if (frameCount % 45 === 0) createCloud();
             if (frameCount % 60 === 0) {
@@ -373,31 +389,28 @@
             }
 
             // --- SPAWNER RINTANGAN & ITEM ---
-            if (frameCount % 60 === 0 && !trainEventActive) {
+            if (frameCount % 60 === 0) {
                 let obj; const rand = Math.random();
                 if (rand < 0.6) obj = createCar([0xd90429, 0x00b4d8, 0xffb703][Math.floor(Math.random()*3)]);
                 else if (rand < 0.8) obj = createRamp(); else obj = createOil();
                 obj.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
             }
-            if (frameCount % 200 === 0 && !trainEventActive) {
+            if (frameCount % 180 === 0) {
                 let animal = Math.random() > 0.5 ? createCow() : createSheep();
                 let startSide = Math.random() > 0.5 ? 1 : -1; 
                 animal.position.set(startSide * 7, 0, -180); animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2;
                 animal.userData.speedX = startSide === 1 ? -0.05 : 0.05; scene.add(animal); obstacles.push(animal);
             }
-            if (frameCount % 100 === 0 && !trainEventActive) {
-                const pkg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xd4a373 }));
-                pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180); pkg.userData={type: 'box'};
+            if (frameCount % 85 === 0) {
+                const pkg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xd4a373, flatShading: true }));
+                pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180); pkg.userData = {type: 'box'};
                 scene.add(pkg); packages.push(pkg);
             }
-            if (frameCount % 150 === 0 && !trainEventActive) {
+            if (frameCount % 120 === 0) {
                 const lane = [-4, 0, 4][Math.floor(Math.random() * 3)];
                 for(let i=0; i<3; i++){
                     const coin = createCoin(); coin.position.set(lane, 1.2, -180 - (i * 4)); scene.add(coin); packages.push(coin); 
                 }
-            }
-            if (frameCount % 600 === 0) {
-                const train = createTrainCrossing(); train.position.set(0, 0, -180); scene.add(train); obstacles.push(train);
             }
 
             // --- ANIMASI GARIS JALAN & ASAP ---
@@ -419,7 +432,7 @@
                 if (p.userData.life <= 0) { scene.remove(p); p.geometry.dispose(); p.material.dispose(); smokeParticles.splice(i, 1); }
             }
 
-            // --- PERGERAKAN SCENERY & LAMPU ---
+            // --- PERGERAKAN SCENERY & LAMPU JALAN ---
             for (let i = clouds.length - 1; i >= 0; i--) {
                 clouds[i].position.z += speed * 0.4;
                 if (clouds[i].position.z > 30) { scene.remove(clouds[i]); clouds.splice(i, 1); }
@@ -453,7 +466,6 @@
             }
 
             // --- RINTANGAN & TABRAKAN ---
-            trainEventActive = false;
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.position.z += speed;
@@ -461,13 +473,6 @@
                 if (obs.userData.type === 'animal') {
                     obs.position.x += obs.userData.speedX;
                     obs.rotation.z = Math.sin(frameCount * 0.2) * 0.05; 
-                } else if (obs.userData.type === 'train_crossing') {
-                    trainEventActive = true; 
-                    obs.userData.trainObj.position.x -= 0.6; // Kereta lewat
-                    
-                    if (Math.abs(obs.position.z - playerGroup.position.z) < 3.5 && Math.abs(obs.userData.trainObj.position.x - playerGroup.position.x) < 22) {
-                        isGameOver = true; crashGame("Tertabrak Kereta!");
-                    }
                 }
 
                 let hitDistZ = 2.8; let hitDistX = 1.8;
@@ -482,7 +487,13 @@
                         playerTargetX = avail[Math.floor(Math.random() * 2)];
                         obs.position.y = -10;
                     } else if ((obs.userData.type === 'car' || obs.userData.type === 'animal') && playerGroup.position.y < 1.2) {
-                        isGameOver = true; crashGame(obs.userData.type === 'animal' ? "Nabrak Hewan!" : "CRASH!");
+                        isGameOver = true;
+                        if(engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                        setTimeout(() => {
+                            let msg = obs.userData.type === 'animal' ? "Aduh! Kamu nabrak hewan nyebrang!" : "💥 CRASH!";
+                            alert(msg + "\nTotal Paket: " + packageCount + "\nSkor Akhir: " + Math.floor(score));
+                            location.reload();
+                        }, 50);
                     }
                 }
                 if (obs.position.z > 40) { scene.remove(obs); obstacles.splice(i, 1); }
@@ -490,14 +501,6 @@
 
             score += Math.floor(speed * 0.5); document.getElementById('score').innerText = score; speed += 0.00012; 
             renderer.render(scene, camera);
-        }
-
-        function crashGame(msg) {
-            if(engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            setTimeout(() => {
-                alert("💥 " + msg + "\nTotal Paket: " + packageCount + "\nSkor Akhir: " + score);
-                location.reload();
-            }, 50);
         }
 
         window.addEventListener('resize', () => {

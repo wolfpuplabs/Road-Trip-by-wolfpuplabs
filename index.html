@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Ngantor - Cinematic Rush</title>
+    <title>Ngantor - Cinematic Rush (Night Update)</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -20,16 +20,14 @@
         .hud-card { display: inline-block; background: rgba(0, 0, 0, 0.45); padding: 6px 16px; border-radius: 20px; margin: 4px; backdrop-filter: blur(4px); }
         .hud-text { color: white; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
         
-        /* Animasi Skor Melayang */
         .floating-score { position: absolute; font-size: 32px; font-weight: 900; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; z-index: 500; pointer-events: none; animation: floatUp 1s ease-out forwards; transform: translateX(-50%); }
         @keyframes floatUp { 0% { transform: translate(-50%, 0) scale(1); opacity: 1; } 100% { transform: translate(-50%, -100px) scale(1.5); opacity: 0; } }
 
-        /* Kontrol Kiri Kanan */
+        /* Kontrol */
         #controls { position: absolute; bottom: 25px; left: 0; width: 100%; display: none; justify-content: space-between; padding: 0 25px; z-index: 1000; }
         .btn { pointer-events: auto; width: 42vw; max-width: 180px; padding: 18px 0; font-size: 20px; font-weight: 900; background: #FFB347; border: 4px solid #ffffff; border-radius: 20px; color: white; cursor: pointer; text-align: center; box-shadow: 0 8px 0 #d18200; transition: transform 0.05s ease; }
         .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #d18200; }
 
-        /* Start Screen */
         #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #87CEEB, #FFB6C1); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
         #start-btn { padding: 15px 50px; font-size: 28px; font-weight: 900; background: #4CAF50; border: 5px solid #fff; border-radius: 15px; color: white; cursor: pointer; box-shadow: 0 8px 0 #2E7D32; animation: pulse 1.5s infinite; margin-top: 20px;}
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -41,9 +39,9 @@
     </audio>
 
     <div id="start-screen">
-        <h1 style="color:white; font-size: 45px; text-shadow: 3px 3px 0 #333; margin: 0; text-align: center;">NGANTOR<br>CINEMATIC RUSH</h1>
+        <h1 style="color:white; font-size: 45px; text-shadow: 3px 3px 0 #333; margin: 0; text-align: center;">NGANTOR<br>NIGHT RIDER</h1>
         <button id="start-btn">PLAY</button>
-        <p style="color: #333; font-weight: bold; margin-top: 20px; text-align: center;">Kini dengan Lampu Motor di Malam Hari!</p>
+        <p style="color: #333; font-weight: bold; margin-top: 20px; text-align: center;">Mobil Keren, Bulan Purnama & Soft Lighting!</p>
     </div>
 
     <div id="ui-container">
@@ -62,7 +60,7 @@
     
     <script>
         // ==========================================
-        // 1. SISTEM AUDIO, SFX & SUARA MESIN
+        // 1. AUDIO & ENGINE SOUND
         // ==========================================
         let audioCtx, engineOsc, engineGain;
 
@@ -77,8 +75,7 @@
 
             engineOsc.type = 'sawtooth';
             engineOsc.frequency.setValueAtTime(40, audioCtx.currentTime);
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(150, audioCtx.currentTime);
+            filter.type = 'lowpass'; filter.frequency.setValueAtTime(150, audioCtx.currentTime);
             engineGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
 
             engineOsc.connect(filter); filter.connect(engineGain); engineGain.connect(audioCtx.destination);
@@ -89,27 +86,24 @@
             if(!audioCtx) return;
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            
             if (type === 'coin') {
                 osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.15);
             } else if (type === 'slip') {
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.3);
             }
         }
 
         // ==========================================
-        // 2. SCENE, CAMERA, LIGHTING
+        // 2. SCENE, SOFT LIGHTING, & MOON
         // ==========================================
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x87CEEB, 0.008);
+        scene.fog = new THREE.FogExp2(0x87CEEB, 0.007);
         
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5.5, 10); camera.lookAt(0, 1, -15);
@@ -117,15 +111,34 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Bayangan lebih halus
         document.body.appendChild(renderer.domElement);
 
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6); scene.add(hemiLight);
+        // Pencahayaan "Baked" Look (Ambient kuat + Hemi lembut, Shadow dari Sun dikurangi intensitasnya)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); 
+        scene.add(ambientLight);
+
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6); 
+        scene.add(hemiLight);
         
-        const sunLight = new THREE.DirectionalLight(0xfffaed, 1.2);
+        const sunLight = new THREE.DirectionalLight(0xffeedd, 0.7); // Intensitas diturunkan agar bayangan tidak gelap pekat
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
+        sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 150;
+        sunLight.shadow.bias = -0.001;
         scene.add(sunLight);
 
+        const moonLight = new THREE.DirectionalLight(0x88bbff, 0.0); // Cahaya bulan (Awalnya mati)
+        moonLight.castShadow = false; // Hindari double shadow yang berat
+        scene.add(moonLight);
+
+        // Objek Bulan Purnama
+        const moonGeo = new THREE.PlaneGeometry(30, 30);
+        const moonMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+        const moon = new THREE.Mesh(moonGeo, moonMat);
+        scene.add(moon);
+
+        // Ground & Road
         const ground = new THREE.Mesh(new THREE.PlaneGeometry(250, 300), new THREE.MeshStandardMaterial({ color: 0x6db33f, flatShading: true }));
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
         
@@ -154,8 +167,7 @@
             for (let i = 0; i < 16; i++) {
                 const height = Math.random() * 25 + 20; const radius = Math.random() * 20 + 15;
                 const mesh = new THREE.Mesh(new THREE.ConeGeometry(radius, height, 5), mat);
-                const side = i % 2 === 0 ? -1 : 1;
-                mesh.position.set(side * (Math.random() * 30 + 35), height / 2 - 2, (i * -18) - 20);
+                mesh.position.set((i % 2 === 0 ? -1 : 1) * (Math.random() * 30 + 35), height / 2 - 2, (i * -18) - 20);
                 mountGroup.add(mesh);
             }
             scene.add(mountGroup);
@@ -166,17 +178,15 @@
         function createCloud() {
             const cloudGroup = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true });
-            const numPuffs = Math.floor(Math.random() * 3) + 3;
-            for (let i = 0; i < numPuffs; i++) {
+            for (let i = 0; i < (Math.floor(Math.random() * 3) + 3); i++) {
                 const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(Math.random() * 2 + 1.5, 0), mat);
                 mesh.position.set(i * 1.5, Math.random() * 0.8, Math.random() * 0.8); cloudGroup.add(mesh);
             }
-            const side = Math.random() > 0.5 ? 1 : -1;
-            cloudGroup.position.set(side * (Math.random() * 40 + 10), Math.random() * 10 + 20, -180);
+            cloudGroup.position.set((Math.random() > 0.5 ? 1 : -1) * (Math.random() * 40 + 10), Math.random() * 10 + 20, -180);
             scene.add(cloudGroup); clouds.push(cloudGroup);
         }
 
-        // Hewan Low Poly / Voxel Style
+        // Hewan Low Poly (Rotasi Diperbaiki agar tidak mundur)
         function createCow() {
             const group = new THREE.Group();
             const matWhite = new THREE.MeshStandardMaterial({color: 0xffffff, flatShading: true});
@@ -185,19 +195,14 @@
             
             const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 2.2), matWhite);
             body.position.y = 1.2; body.castShadow = true; group.add(body);
-            
-            const spot1 = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.8, 0.8), matBlack);
-            spot1.position.set(0, 1.2, 0.4); group.add(spot1);
+            const spot1 = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.8, 0.8), matBlack); spot1.position.set(0, 1.2, 0.4); group.add(spot1);
             
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), matWhite);
-            head.position.set(0, 1.8, -1.2); head.castShadow = true; group.add(head);
-            
-            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), matPink);
-            snout.position.set(0, 1.6, -1.6); group.add(snout);
+            head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head); // Kepala di arah positif Z
+            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), matPink); snout.position.set(0, 1.6, 1.6); group.add(snout);
             
             for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) {
-                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), matBlack);
-                leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), matBlack); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
             }
             group.userData = { type: 'animal' }; return group;
         }
@@ -207,35 +212,67 @@
             const matWool = new THREE.MeshStandardMaterial({color: 0xf4f4f4, flatShading: true});
             const matDark = new THREE.MeshStandardMaterial({color: 0x333333, flatShading: true});
             
-            const wool = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.6), matWool);
-            wool.position.y = 1.0; wool.castShadow = true; group.add(wool);
-            
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), matDark);
-            head.position.set(0, 1.3, -0.9); head.castShadow = true; group.add(head);
+            const wool = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.6), matWool); wool.position.y = 1.0; wool.castShadow = true; group.add(wool);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), matDark); head.position.set(0, 1.3, 0.9); head.castShadow = true; group.add(head); // Kepala di positif Z
             
             for(let x of [-0.4, 0.4]) for(let z of [-0.5, 0.5]) {
-                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), matDark);
-                leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), matDark); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
             }
             group.userData = { type: 'animal' }; return group;
         }
 
-        // Koin Emas (Diubah materialnya agar terang)
+        // Mobil yang Jauh Lebih Bagus
+        function createCar(colorHex) {
+            const group = new THREE.Group();
+            
+            // Chassis / Body Utama
+            const bodyMat = new THREE.MeshStandardMaterial({color: colorHex, flatShading: true, roughness: 0.6});
+            const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 4.4), bodyMat);
+            body.position.set(0, 0.7, 0); body.castShadow = true; group.add(body);
+            
+            // Cabin Atas & Kaca
+            const cabinMat = new THREE.MeshStandardMaterial({color: colorHex, flatShading: true});
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), cabinMat);
+            cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
+
+            const glassMat = new THREE.MeshStandardMaterial({color: 0x111122, roughness: 0.1});
+            const frontGlass = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2.45), glassMat);
+            frontGlass.position.set(0, 1.4, -0.2); group.add(frontGlass);
+
+            // Roda Hitam
+            const wheelMat = new THREE.MeshStandardMaterial({color: 0x111111, flatShading: true});
+            const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 8);
+            for(let x of [-1.15, 1.15]) for(let z of [-1.3, 1.3]) {
+                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                wheel.rotation.z = Math.PI/2; wheel.position.set(x, 0.4, z); wheel.castShadow = true; group.add(wheel);
+            }
+
+            // Lampu Depan & Belakang
+            const hlMat = new THREE.MeshBasicMaterial({color: 0xffffee});
+            const tlMat = new THREE.MeshBasicMaterial({color: 0xff0000});
+            for(let x of [-0.8, 0.8]) {
+                const hl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.1), hlMat); hl.position.set(x, 0.8, -2.2); group.add(hl); // Depan
+                const tl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), tlMat); tl.position.set(x, 0.8, 2.2); group.add(tl); // Belakang
+            }
+
+            // Sorot Lampu Depan Kendaraan (Beam)
+            const beamMat = new THREE.MeshBasicMaterial({ color: 0xfffaed, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+            const beam = new THREE.Mesh(new THREE.ConeGeometry(3, 8, 8, 1, true), beamMat);
+            beam.rotation.x = -Math.PI / 2; beam.position.set(0, 0.5, -5); group.add(beam);
+
+            group.userData = { type: 'car', beamMat: beamMat }; return group;
+        }
+
+        // Koin Emas (Material diperbaiki agar tidak hitam)
         function createCoin() {
             const coin = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.6, 0.6, 0.15, 10), 
-                new THREE.MeshLambertMaterial({ color: 0xFFD700, emissive: 0x443300, flatShading: true })
+                new THREE.CylinderGeometry(0.6, 0.6, 0.15, 12), 
+                new THREE.MeshLambertMaterial({ color: 0xFFD700, emissive: 0x665500, flatShading: true })
             );
             coin.rotation.x = Math.PI / 2; coin.position.y = 1.2; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin;
         }
 
-        // Mobil, Jumpingan, Oli, Pohon, dll (Sama seperti sebelumnya)
-        function createCar(color) {
-            const group=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.4,4),new THREE.MeshStandardMaterial({color:color, flatShading:true}));
-            body.position.y=0.9; body.castShadow=true; group.add(body);
-            const top=new THREE.Mesh(new THREE.BoxGeometry(2,1,2.2),new THREE.MeshStandardMaterial({color:0x222222, flatShading:true}));
-            top.position.set(0,1.8,-0.2); group.add(top); group.userData={type:'car'}; return group;
-        }
+        // Lingkungan
         function createPineTree() {
             const group = new THREE.Group();
             const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), new THREE.MeshStandardMaterial({ color: 0x6e4726, flatShading: true }));
@@ -276,18 +313,9 @@
 
         let playerGroup = new THREE.Group(); scene.add(playerGroup);
         
-        // --- LAMPU MOTOR (Player Lights) ---
-        // Lampu penerang karakter agar tidak gelap
-        const playerAmbientLight = new THREE.PointLight(0xffffff, 0, 5);
-        playerAmbientLight.position.set(0, 2, 0);
-        playerGroup.add(playerAmbientLight);
-
-        // Lampu Sorot Jalan Depan
-        const playerHeadLight = new THREE.SpotLight(0xfffaed, 0, 40, Math.PI/4, 0.5, 1);
-        playerHeadLight.position.set(0, 1, 0.5);
-        playerHeadLight.target.position.set(0, 0, -15);
-        playerGroup.add(playerHeadLight);
-        playerGroup.add(playerHeadLight.target);
+        // Lampu Motor Player (Mengatasi Gelap di Malam Hari)
+        const playerAmbientLight = new THREE.PointLight(0xfffaed, 0, 8);
+        playerAmbientLight.position.set(0, 3, 0); playerGroup.add(playerAmbientLight);
 
         let playerModel; let mixer; const clock = new THREE.Clock();
 
@@ -336,34 +364,37 @@
                 engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1);
             }
 
-            // --- DAY AND NIGHT CYCLE ---
+            // --- DAY AND NIGHT CYCLE & MOON ---
             dayTime += 0.001; 
             const sunY = Math.sin(dayTime); const sunZ = Math.cos(dayTime);
             sunLight.position.set(20, sunY * 50, sunZ * 50);
+
+            // Posisi Bulan Purnama (Berlawanan dengan Matahari)
+            moon.position.set(0, -sunY * 150, -sunZ * 150);
+            moon.lookAt(camera.position);
 
             const colorDay = new THREE.Color(0x7ec0ee); const colorSunset = new THREE.Color(0xff8c42); const colorNight = new THREE.Color(0x0a0a1a);
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
-                skyColor = colorDay; isNight = false; sunLight.intensity = 1.2; hemiLight.intensity = 0.6;
+                skyColor = colorDay; isNight = false; sunLight.intensity = 0.7; hemiLight.intensity = 0.6; moon.material.opacity = 0;
             } else if (sunY > 0) {
                 let lerpFactor = (0.3 - sunY) / 0.3; skyColor.lerpColors(colorDay, colorSunset, lerpFactor);
-                isNight = false; sunLight.intensity = 1.2 - (lerpFactor * 0.8);
+                isNight = false; sunLight.intensity = 0.7 - (lerpFactor * 0.7); moon.material.opacity = 0;
             } else if (sunY > -0.3) {
                 let lerpFactor = (-sunY) / 0.3; skyColor.lerpColors(colorSunset, colorNight, lerpFactor);
-                isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15;
+                isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.2; moonLight.intensity = lerpFactor * 0.3;
+                moon.material.opacity = lerpFactor;
             } else {
-                skyColor = colorNight; isNight = true; sunLight.intensity = 0;
+                skyColor = colorNight; isNight = true; sunLight.intensity = 0; moonLight.intensity = 0.3; moon.material.opacity = 1;
             }
             scene.background = skyColor; scene.fog.color = skyColor;
 
             // --- LAMPU MOTOR ON/OFF OTOMATIS ---
             if (isNight) {
-                playerAmbientLight.intensity = 0.6; // Menerangi karakter
-                playerHeadLight.intensity = 2.0; // Sorot jalan
+                playerAmbientLight.intensity = 1.5;
             } else {
                 playerAmbientLight.intensity = 0;
-                playerHeadLight.intensity = 0;
             }
 
             // Pergerakan Motor
@@ -391,15 +422,20 @@
             // --- SPAWNER RINTANGAN & ITEM ---
             if (frameCount % 60 === 0) {
                 let obj; const rand = Math.random();
-                if (rand < 0.6) obj = createCar([0xd90429, 0x00b4d8, 0xffb703][Math.floor(Math.random()*3)]);
+                if (rand < 0.6) obj = createCar([0xd90429, 0x00b4d8, 0xffb703, 0x8a2be2][Math.floor(Math.random()*4)]);
                 else if (rand < 0.8) obj = createRamp(); else obj = createOil();
                 obj.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
             }
             if (frameCount % 180 === 0) {
                 let animal = Math.random() > 0.5 ? createCow() : createSheep();
-                let startSide = Math.random() > 0.5 ? 1 : -1; 
-                animal.position.set(startSide * 7, 0, -180); animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2;
-                animal.userData.speedX = startSide === 1 ? -0.05 : 0.05; scene.add(animal); obstacles.push(animal);
+                let startSide = Math.random() > 0.5 ? 1 : -1; // 1: Mulai dari Kanan, -1: Mulai dari Kiri
+                animal.position.set(startSide * 7, 0, -180); 
+                
+                // Perbaikan Arah Wajah agar maju (Kepala ada di sumbu Z+)
+                // Jika dari kanan ke kiri, hadap -X. Jika dari kiri ke kanan, hadap +X.
+                animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; 
+                animal.userData.speedX = startSide === 1 ? -0.05 : 0.05; 
+                scene.add(animal); obstacles.push(animal);
             }
             if (frameCount % 85 === 0) {
                 const pkg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xd4a373, flatShading: true }));
@@ -473,6 +509,12 @@
                 if (obs.userData.type === 'animal') {
                     obs.position.x += obs.userData.speedX;
                     obs.rotation.z = Math.sin(frameCount * 0.2) * 0.05; 
+                }
+                
+                // Nyalakan lampu tembak mobil (AI Cars) saat malam
+                if (obs.userData.type === 'car') {
+                    if (isNight) obs.userData.beamMat.opacity = 0.2;
+                    else obs.userData.beamMat.opacity = 0;
                 }
 
                 let hitDistZ = 2.8; let hitDistX = 1.8;

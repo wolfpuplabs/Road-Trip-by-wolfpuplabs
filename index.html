@@ -39,7 +39,7 @@
     <div id="start-screen">
         <h1 style="color:white; font-size: 45px; text-shadow: 3px 3px 0 #333; margin: 0; text-align: center;">NGANTOR<br>CINEMATIC RUSH</h1>
         <button id="start-btn">PLAY</button>
-        <p style="color: #333; font-weight: bold; margin-top: 20px; text-align: center;">Awas Hewan Menyeberang!<br>Nikmati pemandangan Siang & Malam.</p>
+        <p style="color: #333; font-weight: bold; margin-top: 20px; text-align: center;">Dilengkapi Suara Mesin & Asap Knalpot!</p>
     </div>
 
     <div id="ui-container">
@@ -58,14 +58,35 @@
     
     <script>
         // ==========================================
-        // 1. SISTEM AUDIO & SFX
+        // 1. SISTEM AUDIO, SFX & SUARA MESIN
         // ==========================================
         let audioCtx;
+        let engineOsc, engineGain, engineFilter;
+
         function initAudio() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const bgm = document.getElementById('bgm');
-            bgm.volume = 0.3; bgm.play().catch(e => console.log(e));
+            bgm.volume = 0.2; // Volume BGM diturunkan agar suara mesin terdengar
+            bgm.play().catch(e => console.log(e));
+
+            // Setup Procedural Engine Sound (Suara Motor)
+            engineOsc = audioCtx.createOscillator();
+            engineOsc.type = 'sawtooth';
+            engineOsc.frequency.setValueAtTime(45, audioCtx.currentTime); // Pitch rendah (Idling)
+            
+            engineFilter = audioCtx.createBiquadFilter();
+            engineFilter.type = 'lowpass';
+            engineFilter.frequency.setValueAtTime(150, audioCtx.currentTime); // Meredam suara tajam
+
+            engineGain = audioCtx.createGain();
+            engineGain.gain.setValueAtTime(0.25, audioCtx.currentTime); // Volume Mesin
+
+            engineOsc.connect(engineFilter);
+            engineFilter.connect(engineGain);
+            engineGain.connect(audioCtx.destination);
+            engineOsc.start();
         }
+
         function playSfx(type) {
             if(!audioCtx) return;
             const osc = audioCtx.createOscillator();
@@ -98,10 +119,8 @@
         renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // Pencahayaan Dinamis
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6); // Cahaya langit/tanah
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
         scene.add(hemiLight);
-        
         const sunLight = new THREE.DirectionalLight(0xfffaed, 1.2);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
@@ -110,7 +129,6 @@
         sunLight.shadow.camera.top = 20; sunLight.shadow.camera.bottom = -20;
         scene.add(sunLight);
 
-        // Ground, Road, Curbs
         const ground = new THREE.Mesh(new THREE.PlaneGeometry(250, 300), new THREE.MeshStandardMaterial({ color: 0x5a9e34 }));
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
         
@@ -125,7 +143,6 @@
         // ==========================================
         // 3. GENERATOR OBJEK 3D (HEWAN, LAMPU, PAGAR)
         // ==========================================
-        // Sapi (Cow)
         function createCow() {
             const group = new THREE.Group();
             const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 2.5), new THREE.MeshStandardMaterial({color: 0xffffff}));
@@ -140,11 +157,9 @@
                 const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), new THREE.MeshStandardMaterial({color: 0x111111}));
                 leg.position.set(x, 0.4, z); group.add(leg);
             }
-            group.userData = { type: 'animal', width: 2, height: 2 };
-            return group;
+            group.userData = { type: 'animal', width: 2, height: 2 }; return group;
         }
 
-        // Biri-Biri (Sheep)
         function createSheep() {
             const group = new THREE.Group();
             const wool = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8, 0), new THREE.MeshStandardMaterial({color: 0xf4f4f4, flatShading: true}));
@@ -155,11 +170,9 @@
                 const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6), new THREE.MeshStandardMaterial({color: 0x222222}));
                 leg.position.set(x, 0.3, z); group.add(leg);
             }
-            group.userData = { type: 'animal', width: 1.5, height: 1.5 };
-            return group;
+            group.userData = { type: 'animal', width: 1.5, height: 1.5 }; return group;
         }
 
-        // Lampu Jalan (Street Light)
         let streetLights = [];
         function createStreetLight(side) {
             const group = new THREE.Group();
@@ -167,42 +180,33 @@
             pole.position.y = 3; pole.castShadow = true; group.add(pole);
             const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.5), new THREE.MeshStandardMaterial({color: 0x444444}));
             arm.rotation.z = Math.PI / 2; arm.position.set(side === 1 ? -1 : 1, 5.8, 0); group.add(arm);
-            const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.4), new THREE.MeshBasicMaterial({color: 0x222222})); // Awalnya mati
+            const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.4), new THREE.MeshBasicMaterial({color: 0x222222}));
             bulb.position.set(side === 1 ? -2 : 2, 5.7, 0); group.add(bulb);
             
-            // Cahaya Spot (SpotLight) agar nyorot ke aspal
-            const light = new THREE.SpotLight(0xffeebb, 0); // Intensity 0 (Mati)
-            light.position.set(side === 1 ? -2 : 2, 5.5, 0);
-            light.target.position.set(0, 0, 0);
+            const light = new THREE.SpotLight(0xffeebb, 0);
+            light.position.set(side === 1 ? -2 : 2, 5.5, 0); light.target.position.set(0, 0, 0);
             light.angle = Math.PI / 4; light.penumbra = 0.5; light.distance = 25;
             group.add(light); group.add(light.target);
-
-            group.userData = { isLight: true, bulbObj: bulb, lightObj: light };
-            return group;
+            group.userData = { isLight: true, bulbObj: bulb, lightObj: light }; return group;
         }
 
-        // Pagar & Rumput
         function createFence() {
-            const fence = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({color: 0x8B5A2B});
+            const fence = new THREE.Group(); const mat = new THREE.MeshStandardMaterial({color: 0x8B5A2B});
             const post = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.2, 0.2), mat); post.position.y = 0.6; fence.add(post);
             const bar1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 4), mat); bar1.position.set(0, 0.8, 0); fence.add(bar1);
             const bar2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 4), mat); bar2.position.set(0, 0.4, 0); fence.add(bar2);
             return fence;
         }
         function createGrass() {
-            const group = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({color: 0x4CAF50, flatShading: true});
+            const group = new THREE.Group(); const mat = new THREE.MeshStandardMaterial({color: 0x4CAF50, flatShading: true});
             for(let i=0; i<3; i++){
                 const blade = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.6+Math.random()*0.4, 3), mat);
                 blade.position.set(Math.random()-0.5, 0.3, Math.random()-0.5);
-                blade.rotation.x = (Math.random()-0.5)*0.5; blade.rotation.z = (Math.random()-0.5)*0.5;
-                group.add(blade);
+                blade.rotation.x = (Math.random()-0.5)*0.5; blade.rotation.z = (Math.random()-0.5)*0.5; group.add(blade);
             }
             return group;
         }
 
-        // (Generator Kendaraan & Item sebelumnya tetap dipakai, diringkas)
         function createCar(color) {
             const group=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,1,4),new THREE.MeshStandardMaterial({color:color}));
             body.position.y=0.8; body.castShadow=true; group.add(body);
@@ -214,15 +218,14 @@
         function createOil() { const o=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.05,12),new THREE.MeshBasicMaterial({color:0x111})); o.position.y=0.05; o.userData={type:'oil'}; return o; }
 
         // ==========================================
-        // 4. GAME VARIABLES & PLAYER SETUP
+        // 4. GAME VARIABLES, PLAYER, SMOKE FX
         // ==========================================
         let speed = 0.6; let score = 0; let packageCount = 0;
-        let obstacles = []; let packages = []; let scenery = [];
+        let obstacles = []; let packages = []; let scenery = []; let smokeParticles = [];
         let playerTargetX = 0; let isGameOver = false; let gameStarted = false;
         
         let playerVelocityY = 0; let isJumping = false; const gravity = -0.015;
-        let dayTime = Math.PI / 2; // Mulai dari Siang (90 derajat)
-        let isNight = false;
+        let dayTime = Math.PI / 2; let isNight = false;
 
         let playerGroup = new THREE.Group(); scene.add(playerGroup);
         let playerModel; let mixer; const clock = new THREE.Clock();
@@ -250,28 +253,40 @@
             initAudio(); gameStarted = true; animate();
         });
 
+        // Sistem Asap Knalpot (Smoke FX)
+        function spawnSmoke() {
+            const geo = new THREE.DodecahedronGeometry(0.2, 0);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xdcdcdc, transparent: true, opacity: 0.8 });
+            const smoke = new THREE.Mesh(geo, mat);
+            // Spawn di bagian knalpot (belakang motor)
+            smoke.position.set(playerGroup.position.x, playerGroup.position.y + 0.5, playerGroup.position.z + 1.8); 
+            smoke.userData = {
+                vx: (Math.random() - 0.5) * 0.03,
+                vy: Math.random() * 0.03 + 0.02,
+                vz: speed * 0.5 + Math.random() * 0.05, // Mundur ke belakang
+                life: 1.0
+            };
+            scene.add(smoke);
+            smokeParticles.push(smoke);
+        }
+
         // ==========================================
-        // 5. SPAWN LOGIC (TERMASUK HEWAN)
+        // 5. SPAWN LINGKUNGAN & RINTANGAN
         // ==========================================
         function spawnEnvironment() {
             const side = Math.random() > 0.5 ? 1 : -1;
             const xPos = side * (Math.random() * 8 + 8);
-            
-            // Pohon
             if (Math.random() < 0.3) {
                 const tree = new THREE.Mesh(new THREE.ConeGeometry(1.5, 4, 5), new THREE.MeshStandardMaterial({color: 0x2d6a4f, flatShading:true}));
                 tree.position.set(xPos, 2, -180); scene.add(tree); scenery.push(tree);
             }
-            // Pagar (Fence) di pinggir banget
             if (frameCount % 10 === 0) {
                 const fenceL = createFence(); fenceL.position.set(-7, 0, -180); scene.add(fenceL); scenery.push(fenceL);
                 const fenceR = createFence(); fenceR.position.set(7, 0, -180); scene.add(fenceR); scenery.push(fenceR);
             }
-            // Rumput Kecil
             if (frameCount % 5 === 0) {
                 const grass = createGrass(); grass.position.set(xPos, 0, -180); scene.add(grass); scenery.push(grass);
             }
-            // Lampu Jalan
             if (frameCount % 60 === 0) {
                 const lightSide = Math.random() > 0.5 ? 1 : -1;
                 const sLight = createStreetLight(lightSide);
@@ -281,7 +296,6 @@
         }
 
         function spawnRoadObstacles() {
-            // Spawn Rintangan Jalan
             if (frameCount % 65 === 0) {
                 let obj; const rand = Math.random();
                 if (rand < 0.6) obj = createCar([0xd90429, 0x00b4d8, 0xffb703][Math.floor(Math.random()*3)]);
@@ -290,20 +304,14 @@
                 obj.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 0, -180);
                 scene.add(obj); obstacles.push(obj);
             }
-            // Spawn Hewan Menyeberang
             if (frameCount % 200 === 0) {
                 let animal = Math.random() > 0.5 ? createCow() : createSheep();
-                let startSide = Math.random() > 0.5 ? 1 : -1; // 1 = Kanan, -1 = Kiri
+                let startSide = Math.random() > 0.5 ? 1 : -1; 
                 animal.position.set(startSide * 7, 0, -180);
-                
-                // Rotasi hewan menghadap ke jalan
                 animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2;
-                
-                // Menentukan kecepatan nyebrang (bergerak ke arah sumbu X berlawanan)
                 animal.userData.speedX = startSide === 1 ? -0.05 : 0.05; 
                 scene.add(animal); obstacles.push(animal);
             }
-            // Spawn Paket
             if (frameCount % 90 === 0) {
                 const pkg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xd4a373 }));
                 pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180);
@@ -318,16 +326,20 @@
             if (isGameOver || !gameStarted) return;
             requestAnimationFrame(animate);
             if (mixer) mixer.update(clock.getDelta());
-
             frameCount++;
             
+            // --- UPDATE AUDIO MESIN MOTOR ---
+            if (audioCtx && engineOsc) {
+                // RPM Mesin akan naik seiring bertambahnya kecepatan dasar game
+                const currentPitch = 45 + ((speed - 0.6) * 150); 
+                engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1);
+            }
+
             // --- DAY AND NIGHT CYCLE ---
-            dayTime += 0.001; // Kecepatan perputaran waktu
-            const sunY = Math.sin(dayTime); 
-            const sunZ = Math.cos(dayTime);
+            dayTime += 0.001; 
+            const sunY = Math.sin(dayTime); const sunZ = Math.cos(dayTime);
             sunLight.position.set(20, sunY * 50, sunZ * 50);
 
-            // Perubahan Warna Langit
             const colorDay = new THREE.Color(0x7ec0ee);
             const colorSunset = new THREE.Color(0xff8c42);
             const colorNight = new THREE.Color(0x05051a);
@@ -336,12 +348,10 @@
             if (sunY > 0.3) {
                 skyColor = colorDay; isNight = false; sunLight.intensity = 1.2; hemiLight.intensity = 0.6;
             } else if (sunY > 0) {
-                // Sunset
-                let lerpFactor = (0.3 - sunY) / 0.3; // 0 to 1
+                let lerpFactor = (0.3 - sunY) / 0.3; 
                 skyColor.lerpColors(colorDay, colorSunset, lerpFactor);
                 isNight = false; sunLight.intensity = 1.2 - (lerpFactor * 0.8);
             } else if (sunY > -0.3) {
-                // Dusk to Night
                 let lerpFactor = (-sunY) / 0.3;
                 skyColor.lerpColors(colorSunset, colorNight, lerpFactor);
                 isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15;
@@ -361,23 +371,39 @@
             camera.position.y = 5.5 + (playerGroup.position.y * 0.4);
 
             spawnEnvironment(); spawnRoadObstacles();
+            if (frameCount % 4 === 0) spawnSmoke(); // Munculkan asap knalpot
+
+            // --- ANIMASI ASAP (SMOKE FX) ---
+            for (let i = smokeParticles.length - 1; i >= 0; i--) {
+                let p = smokeParticles[i];
+                p.position.x += p.userData.vx;
+                p.position.y += p.userData.vy;
+                p.position.z += p.userData.vz;
+                
+                p.scale.setScalar(p.userData.life); // Mengecil
+                p.material.opacity = p.userData.life; // Memudar
+                p.userData.life -= 0.03; // Umur asap
+
+                if (p.userData.life <= 0) {
+                    scene.remove(p);
+                    p.geometry.dispose(); p.material.dispose();
+                    smokeParticles.splice(i, 1);
+                }
+            }
 
             // --- UPDATE SCENERY (Pohon, Pagar, Lampu Jalan) ---
             for (let i = scenery.length - 1; i >= 0; i--) {
                 let obj = scenery[i];
                 obj.position.z += speed;
-                
-                // Jika ini Lampu Jalan, Nyalakan saat malam
                 if (obj.userData.isLight) {
                     if (isNight && obj.userData.lightObj.intensity === 0) {
-                        obj.userData.lightObj.intensity = 2; // Lampu nyala terang
-                        obj.userData.bulbObj.material.color.setHex(0xffffcc); // Bohlam kuning terang
+                        obj.userData.lightObj.intensity = 2; 
+                        obj.userData.bulbObj.material.color.setHex(0xffffcc); 
                     } else if (!isNight && obj.userData.lightObj.intensity > 0) {
-                        obj.userData.lightObj.intensity = 0; // Mati
+                        obj.userData.lightObj.intensity = 0; 
                         obj.userData.bulbObj.material.color.setHex(0x222222);
                     }
                 }
-
                 if (obj.position.z > 30) { 
                     scene.remove(obj); scenery.splice(i, 1); 
                     if(obj.userData.isLight) streetLights = streetLights.filter(l => l !== obj);
@@ -400,14 +426,11 @@
                 let obs = obstacles[i];
                 obs.position.z += speed;
                 
-                // Jika Hewan, gerakkan ke samping
                 if (obs.userData.type === 'animal') {
                     obs.position.x += obs.userData.speedX;
-                    // Animasi jalan (Goyang-goyang sedikit)
                     obs.rotation.z = Math.sin(frameCount * 0.2) * 0.05; 
                 }
 
-                // Hitbox Collision
                 let hitDistZ = 2.8; let hitDistX = 1.8;
                 if(obs.userData.type === 'animal') { hitDistZ = 1.5; hitDistX = 1.5; }
 
@@ -421,6 +444,7 @@
                         obs.position.y = -10;
                     } else if ((obs.userData.type === 'car' || obs.userData.type === 'animal') && playerGroup.position.y < 1.2) {
                         isGameOver = true;
+                        if(engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime); // Matikan suara mesin
                         setTimeout(() => {
                             let msg = obs.userData.type === 'animal' ? "Aduh! Kamu nabrak hewan nyebrang!" : "💥 CRASH!";
                             alert(msg + "\nTotal Paket: " + packageCount + "\nSkor Akhir: " + Math.floor(score / 10));
@@ -431,7 +455,7 @@
                 if (obs.position.z > 30) { scene.remove(obs); obstacles.splice(i, 1); }
             }
 
-            score += 1; document.getElementById('score').innerText = Math.floor(score / 10); speed += 0.0001; 
+            score += 1; document.getElementById('score').innerText = Math.floor(score / 10); speed += 0.00012; 
             renderer.render(scene, camera);
         }
     </script>

@@ -81,7 +81,9 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     
     <script>
+        // ==========================================
         // 1. SCENE, CAMERA, RENDERER
+        // ==========================================
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
         scene.fog = new THREE.Fog(0x87CEEB, 20, 110);
@@ -96,7 +98,9 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
+        // ==========================================
         // 2. PENCAHAYAAN
+        // ==========================================
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
         
@@ -107,7 +111,9 @@
         dirLight.shadow.mapSize.height = 1024;
         scene.add(dirLight);
 
+        // ==========================================
         // 3. JALAN & LINGKUNGAN
+        // ==========================================
         const ground = new THREE.Mesh(
             new THREE.PlaneGeometry(200, 200), 
             new THREE.MeshStandardMaterial({ color: 0x90EE90, flatShading: true })
@@ -135,11 +141,12 @@
             scene.add(line);
         }
 
+        // ==========================================
         // 4. MEMBUAT POHON LOW-POLY STYLIZED (PROSEDURAL)
+        // ==========================================
         function createStylizedTree() {
             const treeGroup = new THREE.Group();
             
-            // Batang Pohon
             const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 2, 6);
             const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, flatShading: true });
             const trunk = new THREE.Mesh(trunkGeo, trunkMat);
@@ -147,7 +154,6 @@
             trunk.castShadow = true;
             treeGroup.add(trunk);
 
-            // Dedaunan Berlapis (Stylized Low Poly)
             const leafColors = [0x2e8b57, 0x3cb371, 0x228b22];
             const leafMat = new THREE.MeshStandardMaterial({ 
                 color: leafColors[Math.floor(Math.random() * leafColors.length)], 
@@ -171,7 +177,9 @@
             return treeGroup;
         }
 
-        // 5. VARIABLE GAME
+        // ==========================================
+        // 5. VARIABLE GAME & PLAYER GROUP
+        // ==========================================
         let speed = 0.6;
         let score = 0;
         let packageCount = 0;
@@ -181,19 +189,23 @@
         let playerTargetX = 0;
         let isGameOver = false;
 
+        let playerGroup = new THREE.Group(); // Wadah agar motor bisa diatur ketinggiannya
+        scene.add(playerGroup);
+        
         let playerModel;
         let mixer; 
         const clock = new THREE.Clock();
 
-        // 6. MEMUAT MODEL MOTOR ("Ngantor rider.glb")
+        // ==========================================
+        // 6. MEMUAT MODEL MOTOR
+        // ==========================================
         const loader = new THREE.GLTFLoader();
         loader.load(
             'Ngantor rider.glb', 
             function(gltf) {
                 playerModel = gltf.scene;
                 playerModel.scale.set(1.2, 1.2, 1.2); 
-                playerModel.rotation.y = Math.PI; // Putar balik jika membelakangi kamera
-                playerModel.position.set(0, 0, 0);
+                playerModel.rotation.y = Math.PI; // Putar balik
                 
                 playerModel.traverse(function(node) {
                     if (node.isMesh) {
@@ -201,9 +213,21 @@
                         node.receiveShadow = true;
                     }
                 });
-                scene.add(playerModel);
+                
+                // Masukkan model ke dalam group
+                playerGroup.add(playerModel);
 
-                // Jalankan animasi jika ada
+                // PENYESUAIAN KETINGGIAN OTOMATIS
+                // Mengkalkulasi titik terendah (ban motor) agar menempel aspal
+                const box = new THREE.Box3().setFromObject(playerModel);
+                playerModel.position.y = -box.min.y; 
+
+                // CATATAN: Jika roda masih belum pas nempel di aspal, 
+                // hapus kode "playerModel.position.y = -box.min.y;" di atas, 
+                // lalu ganti dengan angka manual seperti di bawah ini:
+                // playerModel.position.y = -1.5; 
+
+                // Jalankan animasi
                 if (gltf.animations && gltf.animations.length > 0) {
                     mixer = new THREE.AnimationMixer(playerModel);
                     mixer.clipAction(gltf.animations[0]).play();
@@ -215,7 +239,9 @@
             }
         );
 
-        // KONTROL
+        // ==========================================
+        // 7. KONTROL PEMAIN
+        // ==========================================
         window.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && playerTargetX > -4) playerTargetX -= 4;
             if (e.key === 'ArrowRight' && playerTargetX < 4) playerTargetX += 4;
@@ -230,13 +256,14 @@
             if (playerTargetX < 4) playerTargetX += 4;
         });
 
-        // GENERATOR RINTANGAN & LINGKUNGAN
+        // ==========================================
+        // 8. GENERATOR RINTANGAN, PAKET, & LINGKUNGAN
+        // ==========================================
         function spawnScenery() {
             const tree = createStylizedTree();
             const side = Math.random() > 0.5 ? 1 : -1;
             tree.position.set(side * (Math.random() * 12 + 8), 0, -120);
             
-            // Variasi ukuran pohon
             const s = Math.random() * 0.4 + 0.8;
             tree.scale.set(s, s, s);
             
@@ -264,7 +291,9 @@
             packages.push(pkg);
         }
 
-        // 7. GAME LOOP
+        // ==========================================
+        // 9. GAME LOOP UTAMA
+        // ==========================================
         let frameCount = 0;
 
         function animate() {
@@ -274,10 +303,8 @@
             
             if (mixer) mixer.update(delta);
 
-            if (playerModel) {
-                // Pergerakan halus ke jalur target
-                playerModel.position.x += (playerTargetX - playerModel.position.x) * 0.15;
-            }
+            // Pindahkan playerGroup (Kiri/Kanan) secara halus
+            playerGroup.position.x += (playerTargetX - playerGroup.position.x) * 0.15;
 
             frameCount++;
             if (frameCount % 8 === 0) spawnScenery();
@@ -296,33 +323,33 @@
                 pkg.position.z += speed;
                 pkg.rotation.y += 0.04;
 
-                if (playerModel) {
-                    if (Math.abs(pkg.position.z - playerModel.position.z) < 2 && Math.abs(pkg.position.x - playerModel.position.x) < 2) {
-                        packageCount++;
-                        score += 300;
-                        document.getElementById('package-count').innerText = packageCount;
-                        scene.remove(pkg);
-                        packages.splice(i, 1);
-                        continue;
-                    }
+                // Deteksi ambil paket (Menggunakan posisi playerGroup)
+                if (Math.abs(pkg.position.z - playerGroup.position.z) < 2 && Math.abs(pkg.position.x - playerGroup.position.x) < 2) {
+                    packageCount++;
+                    score += 300;
+                    document.getElementById('package-count').innerText = packageCount;
+                    scene.remove(pkg);
+                    packages.splice(i, 1);
+                    continue;
                 }
                 if (pkg.position.z > 20) { scene.remove(pkg); packages.splice(i, 1); }
             }
 
-            // Pergerakan Rintangan (Mobil)
+            // Pergerakan & Tabrakan Mobil
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.position.z += speed;
 
-                if (playerModel) {
-                    if (Math.abs(obs.position.z - playerModel.position.z) < 2.5 && Math.abs(obs.position.x - playerModel.position.x) < 1.8) {
-                        isGameOver = true;
-                        alert("Crash! Paket terkumpul: " + packageCount + "\nSkor: " + Math.floor(score / 10));
-                    }
+                // Deteksi tabrakan (Menggunakan posisi playerGroup)
+                if (Math.abs(obs.position.z - playerGroup.position.z) < 2.5 && Math.abs(obs.position.x - playerGroup.position.x) < 1.8) {
+                    isGameOver = true;
+                    alert("Crash! Paket terkumpul: " + packageCount + "\nSkor: " + Math.floor(score / 10));
                 }
+                
                 if (obs.position.z > 20) { scene.remove(obs); obstacles.splice(i, 1); }
             }
 
+            // Update Skor & Kecepatan
             score += 1;
             document.getElementById('score').innerText = Math.floor(score / 10);
             speed += 0.00015; 
@@ -330,12 +357,14 @@
             renderer.render(scene, camera);
         }
 
+        // Penyesuaian ukuran layar jika di-resize
         window.addEventListener('resize', () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
         });
 
+        // Mulai Game
         animate();
     </script>
 </body>

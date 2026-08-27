@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Ngantor - Ultimate Low Poly Rush</title>
+    <title>Road Trip - Cinematic Rush</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap');
         
@@ -45,13 +45,13 @@
     </audio>
 
     <div id="start-screen">
-        <h1 style="color:white; font-size: 60px; text-shadow: 4px 4px 0 #333; margin: 0; text-align: center; line-height: 1.1;">NGANTOR<br>ULTIMATE</h1>
-        <button id="start-btn">PLAY NOW</button>
-        <p style="color: #fff; font-size: 18px; font-weight: bold; margin-top: 25px; text-shadow: 1px 1px 2px #000; text-align: center;">Animasi Ombak Laut, Sistem Combo & Particle FX!</p>
+        <h1 style="color:white; font-size: 65px; text-shadow: 4px 4px 0 #333; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP</h1>
+        <button id="start-btn">RIDE NOW</button>
+        <p style="color: #fff; font-size: 18px; font-weight: bold; margin-top: 25px; text-shadow: 1px 1px 2px #000; text-align: center;">Cinematic HDR, Mulus & Aesthetic!</p>
     </div>
 
     <div id="ui-container">
-        <h1 id="title">Ngantor</h1>
+        <h1 id="title">Road Trip</h1>
         <div class="hud-card" id="score-card"><span class="hud-text">Skor: <span id="score" style="color:#FF5722;">0</span></span></div>
         <div class="hud-card"><span class="hud-text">📦 Paket: <span id="package-count" style="color:#4CAF50;">0</span></span></div>
     </div>
@@ -70,7 +70,6 @@
         // 1. AUDIO & SFX
         // ==========================================
         let audioCtx, engineOsc, engineGain;
-
         function initAudio() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const bgm = document.getElementById('bgm');
@@ -80,8 +79,7 @@
             const filter = audioCtx.createBiquadFilter();
             engineGain = audioCtx.createGain();
 
-            engineOsc.type = 'sawtooth';
-            engineOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
+            engineOsc.type = 'sawtooth'; engineOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
             filter.type = 'lowpass'; filter.frequency.setValueAtTime(200, audioCtx.currentTime);
             engineGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
 
@@ -112,7 +110,7 @@
         }
 
         // ==========================================
-        // 2. SCENE, CAMERA, & VIBRANT LIGHTING
+        // 2. SCENE, CAMERA, & CINEMATIC HDR LIGHTING
         // ==========================================
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x87CEEB, 0.007);
@@ -120,18 +118,21 @@
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5.5, 11); camera.lookAt(0, 1, -15);
         
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // TONE MAPPING CINEMATIC (Warna Pop-out)
         renderer.outputEncoding = THREE.sRGBEncoding; 
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
         document.body.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.45); scene.add(ambientLight);
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.65); scene.add(hemiLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); scene.add(ambientLight);
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6); scene.add(hemiLight);
         
-        const sunLight = new THREE.DirectionalLight(0xfffaed, 1.0);
+        const sunLight = new THREE.DirectionalLight(0xfffaed, 1.2);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
         sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 150;
@@ -140,7 +141,7 @@
         scene.add(sunLight);
 
         // ==========================================
-        // 3. TERRAIN MULTI-BIOME DENGAN OMBAK ANIMASI
+        // 3. TERRAIN MULTI-BIOME (Kiri: Desa, Kanan: Laut)
         // ==========================================
         const grassGround = new THREE.Mesh(new THREE.PlaneGeometry(120, 400), new THREE.MeshStandardMaterial({ color: 0x8bc34a, flatShading: true }));
         grassGround.rotation.x = -Math.PI / 2; grassGround.position.set(-66, 0, 0); grassGround.receiveShadow = true; scene.add(grassGround);
@@ -148,9 +149,8 @@
         const sandBeach = new THREE.Mesh(new THREE.PlaneGeometry(30, 400), new THREE.MeshStandardMaterial({ color: 0xf4a261, flatShading: true }));
         sandBeach.rotation.x = -Math.PI / 2; sandBeach.position.set(21, 0, 0); sandBeach.receiveShadow = true; scene.add(sandBeach);
 
-        // Lautan Biru dengan segmentasi tinggi agar bisa dianimasikan ombaknya
         const oceanGeo = new THREE.PlaneGeometry(100, 400, 20, 20);
-        const oceanSea = new THREE.Mesh(oceanGeo, new THREE.MeshStandardMaterial({ color: 0x0077b6, flatShading: true, shininess: 0.8 }));
+        const oceanSea = new THREE.Mesh(oceanGeo, new THREE.MeshStandardMaterial({ color: 0x0077b6, flatShading: true, roughness: 0.2, metalness: 0.1 }));
         oceanSea.rotation.x = -Math.PI / 2; oceanSea.position.set(86, -0.4, 0); scene.add(oceanSea);
 
         const road = new THREE.Mesh(new THREE.PlaneGeometry(12, 400), new THREE.MeshStandardMaterial({ color: 0x3d3d3d, roughness: 0.9 }));
@@ -170,15 +170,16 @@
         }
 
         // ==========================================
-        // 4. GENERATOR OBJEK 3D ENVIRONMENT
+        // 4. HIGH-DETAIL LOW POLY GENERATOR
         // ==========================================
+        
+        // Gunung (Hanya di Kiri, Tidak ke tengah jalan)
         let mountains = [];
         function spawnMountain() {
             const mat = new THREE.MeshStandardMaterial({ color: 0x388e3c, flatShading: true });
             const height = Math.random() * 30 + 25; const radius = Math.random() * 25 + 20;
             const mesh = new THREE.Mesh(new THREE.ConeGeometry(radius, height, 5), mat);
-            const side = Math.random() > 0.5 ? 1 : -1;
-            mesh.position.set(side * (Math.random() * 40 + 40), height / 2 - 2, -220);
+            mesh.position.set(-(Math.random() * 30 + 55), height / 2 - 2, -220); // KIRI JAUH
             scene.add(mesh); mountains.push(mesh);
         }
         for(let i=0; i<8; i++) { spawnMountain(); mountains[i].position.z = -150 + (i * 20); }
@@ -195,27 +196,44 @@
             scene.add(cloudGroup); clouds.push(cloudGroup);
         }
 
+        // Pohon Kelapa + Buah Kelapa (Pantai/Kanan)
         function createPalmTree() {
             const group = new THREE.Group();
             const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8d6e63, flatShading: true });
             const leafMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, flatShading: true });
-            for(let i=0; i<5; i++) {
-                const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.35 - i*0.04, 0.4 - i*0.04, 1), trunkMat);
-                seg.position.set(i*0.1, i*0.9 + 0.5, 0); seg.rotation.z = -0.08; seg.castShadow = true; group.add(seg);
+            const nutMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, flatShading: true });
+            
+            for(let i=0; i<6; i++) {
+                const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.35 - i*0.04, 0.4 - i*0.04, 1, 6), trunkMat);
+                seg.position.set(i*0.15, i*0.9 + 0.5, 0); seg.rotation.z = -0.1; seg.castShadow = true; group.add(seg);
             }
+            // Daun
             for(let a=0; a<5; a++) {
-                const leaf = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.1, 0.8), leafMat);
-                leaf.position.set(0.5, 5, 0); leaf.rotation.y = (a * Math.PI / 2.5); leaf.rotation.z = -0.4; leaf.castShadow = true; group.add(leaf);
+                const leaf = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.1, 0.8), leafMat);
+                leaf.position.set(0.8, 5.5, 0); leaf.rotation.y = (a * Math.PI / 2.5); leaf.rotation.z = -0.5; leaf.castShadow = true; group.add(leaf);
+            }
+            // Kelapa
+            for(let c=0; c<3; c++) {
+                const nut = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3, 0), nutMat);
+                nut.position.set(0.6 + Math.random()*0.4, 5.2, (Math.random()-0.5)*0.8); group.add(nut);
             }
             return group;
         }
 
+        // Rumah Pedesaan Detail (Kiri)
         function createVillageHouse() {
             const group = new THREE.Group();
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 4), new THREE.MeshStandardMaterial({ color: 0xf5f5f5, flatShading: true }));
-            wall.position.y = 1.5; wall.castShadow = true; group.add(wall);
-            const roof = new THREE.Mesh(new THREE.ConeGeometry(3.5, 2, 4), new THREE.MeshStandardMaterial({ color: 0xb71c1c, flatShading: true }));
-            roof.rotation.y = Math.PI/4; roof.position.y = 4; roof.castShadow = true; group.add(roof);
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0xfdfdfd, flatShading: true });
+            const roofMat = new THREE.MeshStandardMaterial({ color: [0xb71c1c, 0x1565c0, 0xef6c00][Math.floor(Math.random()*3)], flatShading: true });
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x4e342e });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x81d4fa });
+
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 4), wallMat); wall.position.y = 1.5; wall.castShadow = true; group.add(wall);
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(3.8, 2.5, 4), roofMat); roof.rotation.y = Math.PI/4; roof.position.y = 4.25; roof.castShadow = true; group.add(roof);
+            const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 4.1), woodMat); door.position.set(0, 0.9, 0); group.add(door);
+            const window = new THREE.Mesh(new THREE.BoxGeometry(4.1, 1, 1.5), glassMat); window.position.set(0, 1.5, 0); group.add(window);
+            const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.5, 0.6), woodMat); chimney.position.set(1, 4.5, 1); group.add(chimney);
+            
             return group;
         }
 
@@ -224,11 +242,36 @@
             const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), new THREE.MeshStandardMaterial({ color: 0x5d4037, flatShading: true }));
             trunk.position.y = 1; trunk.castShadow = true; group.add(trunk);
             const mat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, flatShading: true });
-            [{r: 2, h: 2.5, y: 2.2}, {r: 1.6, h: 2, y: 3.4}, {r: 1.1, h: 1.8, y: 4.4}].forEach(l => {
-                const c = new THREE.Mesh(new THREE.ConeGeometry(l.r, l.h, 6), mat); c.position.y = l.y; c.castShadow = true; group.add(c);
-            }); return group;
+            
+            // Sedikit dimiringkan tiap layer agar organik
+            let yPos = 2.2; let rad = 2;
+            for(let i=0; i<3; i++) {
+                const c = new THREE.Mesh(new THREE.ConeGeometry(rad, 2.5, 6), mat);
+                c.position.y = yPos; c.rotation.x = (Math.random()-0.5)*0.1; c.castShadow = true; group.add(c);
+                yPos += 1.2; rad -= 0.5;
+            }
+            return group;
         }
 
+        function createBush() {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0x4caf50, flatShading: true });
+            for (let i = 0; i < 3; i++) {
+                const m = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7 + Math.random() * 0.4, 0), mat);
+                m.position.set(i * 0.6 - 0.6, 0.5, Math.random() * 0.3); m.castShadow = true; group.add(m);
+            }
+            return group;
+        }
+
+        function createRock() {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0x78909c, flatShading: true });
+            const r1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6 + Math.random()*0.4, 0), mat); r1.position.set(0,0.4,0); r1.castShadow=true; group.add(r1);
+            const r2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4 + Math.random()*0.3, 0), mat); r2.position.set(0.6,0.3,0.5); r2.castShadow=true; group.add(r2);
+            return group;
+        }
+
+        // Lampu Jalan Realistis (Pakai SpotLight)
         let streetLights = [];
         function createStreetLight(side) {
             const group = new THREE.Group();
@@ -240,15 +283,51 @@
             const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.4), bulbMat);
             bulb.position.set(side === 1 ? -2 : 2, 5.7, 0); group.add(bulb);
             
-            const beamMat = new THREE.MeshBasicMaterial({ color: 0xfffaed, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
-            const beam = new THREE.Mesh(new THREE.ConeGeometry(2.5, 6, 8, 1, true), beamMat);
-            beam.position.set(side === 1 ? -2 : 2, 2.8, 0); group.add(beam);
-            group.userData = { isLight: true, bulbMat: bulbMat, beamMat: beamMat }; return group;
+            // SpotLight untuk Menerangi Aspal (Cinematic)
+            const spotLight = new THREE.SpotLight(0xfff5b6, 0); // Awal mati
+            spotLight.position.set(side === 1 ? -2 : 2, 5.5, 0);
+            spotLight.target.position.set(side === 1 ? -1 : 1, 0, 0);
+            spotLight.angle = Math.PI / 4; spotLight.penumbra = 0.5; spotLight.distance = 20;
+            group.add(spotLight); group.add(spotLight.target);
+
+            group.userData = { isLight: true, bulbMat: bulbMat, lightObj: spotLight }; return group;
+        }
+
+        // Hewan Super Cute Low Poly
+        function createCow() {
+            const group = new THREE.Group();
+            const matW = new THREE.MeshStandardMaterial({color: 0xffffff, flatShading: true});
+            const matB = new THREE.MeshStandardMaterial({color: 0x222222, flatShading: true});
+            const matP = new THREE.MeshStandardMaterial({color: 0xffb6c1, flatShading: true});
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 2.0), matW); body.position.y = 1.2; body.castShadow = true; group.add(body);
+            const spot = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.8, 0.8), matB); spot.position.set(0, 1.2, 0.2); group.add(spot);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), matW); head.position.set(0, 1.8, 1.1); head.castShadow = true; group.add(head);
+            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), matP); snout.position.set(0, 1.6, 1.5); group.add(snout);
+            const hornL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), matB); hornL.position.set(-0.3, 2.4, 1.0); group.add(hornL);
+            const hornR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), matB); hornR.position.set(0.3, 2.4, 1.0); group.add(hornR);
+            for(let x of [-0.5, 0.5]) for(let z of [-0.7, 0.7]) {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), matB); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
+            }
+            group.userData = { type: 'animal' }; return group;
+        }
+
+        function createSheep() {
+            const group = new THREE.Group();
+            const matW = new THREE.MeshStandardMaterial({color: 0xf4f4f4, flatShading: true});
+            const matD = new THREE.MeshStandardMaterial({color: 0x333333, flatShading: true});
+            const wool = new THREE.Mesh(new THREE.DodecahedronGeometry(0.9, 0), matW); wool.position.y = 1.1; wool.castShadow = true; group.add(wool);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), matD); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head);
+            const earL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), matD); earL.position.set(-0.4, 1.5, 0.7); group.add(earL);
+            const earR = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), matD); earR.position.set(0.4, 1.5, 0.7); group.add(earR);
+            for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), matD); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
+            }
+            group.userData = { type: 'animal' }; return group;
         }
 
         function createCar(colorHex) {
             const group = new THREE.Group();
-            const bodyMat = new THREE.MeshStandardMaterial({color: colorHex, flatShading: true, roughness: 0.6});
+            const bodyMat = new THREE.MeshStandardMaterial({color: colorHex, flatShading: true});
             const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 4.4), bodyMat); body.position.set(0, 0.7, 0); body.castShadow = true; group.add(body);
             const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), bodyMat); cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
             const glass = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.5, 2.45), new THREE.MeshStandardMaterial({color: 0x111122, roughness: 0.1})); glass.position.set(0, 1.4, -0.2); group.add(glass);
@@ -261,11 +340,12 @@
             group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1 }; return group;
         }
 
+        // --- REL KERETA API 3D DETAIL ---
         function createTrainCrossing() {
             const group = new THREE.Group();
             const ironMat = new THREE.MeshStandardMaterial({color: 0xaaaaaa, flatShading: true, metalness: 0.8});
             const woodMat = new THREE.MeshStandardMaterial({color: 0x4a2e19, flatShading: true});
-            const ballastMat = new THREE.MeshStandardMaterial({color: 0x666666, flatShading: true});
+            const ballastMat = new THREE.MeshStandardMaterial({color: 0x555555, flatShading: true});
             
             const ballast = new THREE.Mesh(new THREE.BoxGeometry(20, 0.12, 10), ballastMat); ballast.position.set(0, 0.02, 0); ballast.receiveShadow = true; group.add(ballast);
             for(let i=0; i<7; i++){ const wood = new THREE.Mesh(new THREE.BoxGeometry(16, 0.1, 0.6), woodMat); wood.position.set(0, 0.08, i*1.4 - 4.2); wood.receiveShadow = true; group.add(wood); }
@@ -293,6 +373,10 @@
             group.userData = { type: 'train_crossing', trainObj: trainGroup, warningLights: warningLights, flashTimer: 0 }; return group;
         }
 
+        function createRamp() { const r=new THREE.Mesh(new THREE.BoxGeometry(3,0.2,4),new THREE.MeshStandardMaterial({color:0x8B4513, flatShading:true})); r.rotation.x=Math.PI/12; r.position.y=0.5; r.userData={type:'ramp'}; return r; }
+        function createOil() { const o=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.05,12),new THREE.MeshBasicMaterial({color:0x111111})); o.position.y=0.05; o.userData={type:'oil'}; return o; }
+        function createCoin() { const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.15, 12), new THREE.MeshStandardMaterial({ color: 0xFFD700, emissive: 0x443300, flatShading: true, roughness: 0.2, metalness: 0.8 })); coin.rotation.x = Math.PI / 2; coin.position.y = 1.2; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin; }
+
         // ==========================================
         // 5. PLAYER, VARIABLES & PARTICLE SYSTEM
         // ==========================================
@@ -305,7 +389,9 @@
         let dayTime = Math.PI / 2; let isNight = false; let cameraShake = 0;
 
         let playerGroup = new THREE.Group(); scene.add(playerGroup);
-        const playerAmbientLight = new THREE.PointLight(0xfffaed, 0, 8); playerAmbientLight.position.set(0, 3, 0); playerGroup.add(playerAmbientLight);
+        const playerHeadLight = new THREE.SpotLight(0xfffaed, 0, 40, Math.PI/4, 0.5, 1);
+        playerHeadLight.position.set(0, 1.5, 0); playerHeadLight.target.position.set(0, 0, -15);
+        playerGroup.add(playerHeadLight); playerGroup.add(playerHeadLight.target);
 
         let playerModel; let mixer; const clock = new THREE.Clock();
 
@@ -336,8 +422,6 @@
             floatText.className = 'floating-score'; floatText.innerText = text; floatText.style.color = color || '#FFD700';
             floatText.style.left = '50%'; floatText.style.top = '35%';
             document.body.appendChild(floatText); setTimeout(() => floatText.remove(), 1000);
-            
-            // Pop effect UI
             const scoreCard = document.getElementById('score-card');
             scoreCard.style.transform = 'scale(1.2)'; setTimeout(()=> scoreCard.style.transform = 'scale(1)', 100);
         }
@@ -345,8 +429,7 @@
         function createExplosion(x, y, z, colorHex) {
             for(let i=0; i<8; i++) {
                 const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), new THREE.MeshBasicMaterial({color: colorHex}));
-                p.position.set(x, y, z);
-                p.userData = { vx: (Math.random()-0.5)*0.3, vy: Math.random()*0.3, vz: (Math.random()-0.5)*0.3, life: 1 };
+                p.position.set(x, y, z); p.userData = { vx: (Math.random()-0.5)*0.3, vy: Math.random()*0.3, vz: (Math.random()-0.5)*0.3, life: 1 };
                 scene.add(p); particles.push(p);
             }
         }
@@ -359,8 +442,7 @@
         function animate() {
             if (isGameOver || !gameStarted) return;
             requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime();
+            const delta = clock.getDelta(); const time = clock.getElapsedTime();
             if (mixer) mixer.update(delta);
             frameCount++;
             
@@ -372,7 +454,6 @@
             }
             positions.needsUpdate = true;
 
-            // Engine Audio
             if (audioCtx && engineOsc) {
                 const currentPitch = 40 + ((speed - 0.65) * 180); 
                 engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1);
@@ -383,14 +464,14 @@
             const sunY = Math.sin(dayTime); const sunZ = Math.cos(dayTime);
             sunLight.position.set(-20, sunY * 50, sunZ * 50);
 
-            const colorDay = new THREE.Color(0x87CEEB); const colorSunset = new THREE.Color(0xff8c42); const colorNight = new THREE.Color(0x0f172a);
+            const colorDay = new THREE.Color(0x87CEEB); const colorSunset = new THREE.Color(0xff8c42); const colorNight = new THREE.Color(0x0a0a1a);
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
-                skyColor = colorDay; isNight = false; sunLight.intensity = 0.9; hemiLight.intensity = 0.65;
+                skyColor = colorDay; isNight = false; sunLight.intensity = 1.0; hemiLight.intensity = 0.65;
             } else if (sunY > 0) {
                 let lerpFactor = (0.3 - sunY) / 0.3; skyColor.lerpColors(colorDay, colorSunset, lerpFactor);
-                isNight = false; sunLight.intensity = 0.9 - (lerpFactor * 0.9);
+                isNight = false; sunLight.intensity = 1.0 - (lerpFactor * 0.8);
             } else if (sunY > -0.3) {
                 let lerpFactor = (-sunY) / 0.3; skyColor.lerpColors(colorSunset, colorNight, lerpFactor);
                 isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.25; 
@@ -398,33 +479,27 @@
                 skyColor = colorNight; isNight = true; sunLight.intensity = 0; 
             }
             scene.background = skyColor; scene.fog.color = skyColor;
-            playerAmbientLight.intensity = isNight ? 1.5 : 0;
+            playerHeadLight.intensity = isNight ? 2.5 : 0;
 
-            // --- COMBO SYSTEM ---
             if(comboTimer > 0) {
                 comboTimer -= delta;
-                if(comboTimer <= 0) {
-                    combo = 1; document.getElementById('combo-container').style.opacity = '0';
-                }
+                if(comboTimer <= 0) { combo = 1; document.getElementById('combo-container').style.opacity = '0'; }
             }
 
-            // --- PERGERAKAN PLAYER (LEAN DYNAMIC & PHYSICS) ---
+            // --- PERGERAKAN PLAYER (LEAN DYNAMIC) ---
             playerGroup.position.x += (playerTargetX - playerGroup.position.x) * 0.18;
             playerGroup.rotation.z = (playerGroup.position.x - playerTargetX) * -0.08;
 
             playerGroup.position.y += playerVelocityY;
             if (playerGroup.position.y > 0) {
-                playerVelocityY += gravity; isJumping = true;
-                playerGroup.rotation.x = -0.15;
+                playerVelocityY += gravity; isJumping = true; playerGroup.rotation.x = -0.15;
             } else {
-                if(isJumping) cameraShake = 0.3; // Landing impact
-                playerGroup.position.y = 0; playerVelocityY = 0; isJumping = false;
-                playerGroup.rotation.x = 0;
+                if(isJumping) cameraShake = 0.3; 
+                playerGroup.position.y = 0; playerVelocityY = 0; isJumping = false; playerGroup.rotation.x = 0;
             }
             
-            // Kamera Dinamis & Shake
             camera.position.y = 5.5 + (playerGroup.position.y * 0.3);
-            camera.position.z = 11 + (speed - 0.65) * 10; // Zoom out saat ngebut
+            camera.position.z = 11 + (speed - 0.65) * 10; 
             if (cameraShake > 0) {
                 camera.position.y += (Math.random() - 0.5) * cameraShake;
                 camera.position.x += (Math.random() - 0.5) * cameraShake;
@@ -432,17 +507,20 @@
             }
 
             // --- SPAWNER ENVIRONMENT ---
-            if (frameCount % 60 === 0) spawnMountain();
             if (frameCount % 10 === 0) {
+                const side = Math.random() > 0.5 ? 1 : -1;
                 const rand = Math.random(); let obj;
-                if (rand < 0.4) obj = createPineTree(); else if (rand < 0.7) obj = createBush(); else if (rand < 0.85) obj = createVillageHouse(); else obj = createRock();
-                obj.position.set(-(Math.random() * 10 + 8), 0, -180);
+                
+                if (side === -1) { // Kiri (Desa)
+                    if (rand < 0.4) obj = createPineTree(); else if (rand < 0.7) obj = createBush(); else if (rand < 0.85) obj = createVillageHouse(); else obj = createRock();
+                    obj.position.set(-(Math.random() * 10 + 8), 0, -180);
+                } else { // Kanan (Pantai)
+                    if (rand < 0.6) obj = createPalmTree(); else if (rand < 0.8) obj = createBush(); else obj = createRock();
+                    obj.position.set(Math.random() * 10 + 10, 0, -180);
+                }
                 obj.scale.set(0.1, 0.1, 0.1); obj.userData.targetScale = 1; scene.add(obj); scenery.push(obj);
             }
-            if (frameCount % 14 === 0) {
-                const palm = createPalmTree(); palm.position.set(Math.random() * 10 + 10, 0, -180);
-                palm.scale.set(0.1, 0.1, 0.1); palm.userData.targetScale = 1; scene.add(palm); scenery.push(palm);
-            }
+            
             if (frameCount % 45 === 0) createCloud();
             if (frameCount % 60 === 0) {
                 const lightSide = Math.random() > 0.5 ? 1 : -1;
@@ -456,16 +534,16 @@
             } else if (frameCount % 60 === 0 && !trainEventActive) {
                 let obj; const rand = Math.random();
                 if (rand < 0.6) obj = createCar([0xe63946, 0x457b9d, 0xffb703, 0x2a9d8f][Math.floor(Math.random()*4)]);
-                else if (rand < 0.8) {
-                    obj = new THREE.Mesh(new THREE.BoxGeometry(3,0.2,4),new THREE.MeshStandardMaterial({color:0x8B4513, flatShading:true}));
-                    obj.rotation.x=Math.PI/12; obj.position.y=0.5; obj.userData={type:'ramp'};
-                } else {
-                    obj = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.05,12),new THREE.MeshBasicMaterial({color:0x111111}));
-                    obj.position.y=0.05; obj.userData={type:'oil'};
-                }
+                else if (rand < 0.8) obj = createRamp(); else obj = createOil();
                 obj.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
             }
-            
+            if (frameCount % 180 === 0 && !trainEventActive) {
+                let animal = Math.random() > 0.5 ? createCow() : createSheep();
+                let startSide = Math.random() > 0.5 ? 1 : -1; 
+                animal.position.set(startSide * 7, 0, -180); 
+                animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; 
+                animal.userData.speedX = startSide === 1 ? -0.06 : 0.06; scene.add(animal); obstacles.push(animal);
+            }
             if (frameCount % 85 === 0 && !trainEventActive) {
                 const pkg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xd4a373, flatShading: true }));
                 pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180); pkg.userData = {type: 'box'};
@@ -474,9 +552,7 @@
             if (frameCount % 120 === 0 && !trainEventActive) {
                 const lane = [-4, 0, 4][Math.floor(Math.random() * 3)];
                 for(let i=0; i<3; i++){
-                    const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.15, 12), new THREE.MeshLambertMaterial({ color: 0xFFD700, emissive: 0x665500, flatShading: true }));
-                    coin.rotation.x = Math.PI / 2; coin.position.y = 1.2; coin.castShadow = true; coin.userData = { type: 'coin' };
-                    coin.position.set(lane, 1.2, -180 - (i * 4)); scene.add(coin); packages.push(coin); 
+                    const coin = createCoin(); coin.position.set(lane, 1.2, -180 - (i * 4)); scene.add(coin); packages.push(coin); 
                 }
             }
 
@@ -511,10 +587,10 @@
             
             for (let i = scenery.length - 1; i >= 0; i--) {
                 let obj = scenery[i]; obj.position.z += speed;
-                if (obj.scale.x < obj.userData.targetScale) obj.scale.addScalar(0.08); // Bouncy pop-up
+                if (obj.scale.x < obj.userData.targetScale) obj.scale.addScalar(0.08); 
                 if (obj.userData.isLight) {
-                    if (isNight) { obj.userData.beamMat.opacity = 0.35; obj.userData.bulbMat.color.setHex(0xffffcc); } 
-                    else { obj.userData.beamMat.opacity = 0; obj.userData.bulbMat.color.setHex(0x222222); }
+                    if (isNight) { obj.userData.lightObj.intensity = 2; obj.userData.bulbMat.color.setHex(0xffffcc); } 
+                    else { obj.userData.lightObj.intensity = 0; obj.userData.bulbMat.color.setHex(0x222222); }
                 }
                 if (obj.position.z > 30) { scene.remove(obj); scenery.splice(i, 1); }
             }
@@ -524,11 +600,10 @@
                 let pkg = packages[i];
                 pkg.position.z += speed; pkg.userData.type === 'coin' ? pkg.rotation.y += 0.1 : pkg.rotation.y += 0.05;
 
-                if (Math.abs(pkg.position.z - playerGroup.position.z) < 2.0 && Math.abs(pkg.position.x - playerGroup.position.x) < 1.5 && !isJumping) {
+                if (Math.abs(pkg.position.z - playerGroup.position.z) < 2.2 && Math.abs(pkg.position.x - playerGroup.position.x) < 1.5 && !isJumping) {
                     comboTimer = 2.0; 
                     const comboEl = document.getElementById('combo-container');
-                    comboEl.style.opacity = '1'; comboEl.style.transform = 'scale(1.2)';
-                    setTimeout(()=> comboEl.style.transform = 'scale(1)', 100);
+                    comboEl.style.opacity = '1'; comboEl.style.transform = 'scale(1.2)'; setTimeout(()=> comboEl.style.transform = 'scale(1)', 100);
                     document.getElementById('combo-text').innerText = combo;
 
                     if (pkg.userData.type === 'coin') {
@@ -536,7 +611,7 @@
                         createExplosion(pkg.position.x, pkg.position.y, pkg.position.z, 0xFFD700); playSfx('coin');
                     } else {
                         let pts = 100 * combo; packageCount++; score += pts; document.getElementById('package-count').innerText = packageCount;
-                        showFloatingScore('+'+pts, '#FF9800'); createExplosion(pkg.position.x, pkg.position.y, pkg.position.z, 0xd4a373); playSfx('coin');
+                        showFloatingScore('+1📦', '#FF9800'); createExplosion(pkg.position.x, pkg.position.y, pkg.position.z, 0xd4a373); playSfx('coin');
                     }
                     combo++; scene.remove(pkg); packages.splice(i, 1); continue;
                 }
@@ -550,9 +625,9 @@
                 obs.position.z += speed;
                 
                 if (obs.userData.type === 'car') {
-                    obs.position.z += obs.userData.driveSpeed;
+                    obs.position.z += obs.userData.driveSpeed; // Mobil melaju
                 } else if (obs.userData.type === 'train_crossing') {
-                    trainEventActive = true; obs.userData.trainObj.position.x -= 0.8; 
+                    trainEventActive = true; obs.userData.trainObj.position.x -= 1.0; // Kereta melaju
                     obs.userData.flashTimer++;
                     if(obs.userData.flashTimer % 20 === 0) {
                         let color = obs.userData.warningLights[0].color.getHex() === 0x330000 ? 0xff0000 : 0x330000;
@@ -561,9 +636,15 @@
                     if (Math.abs(obs.position.z - playerGroup.position.z) < 3.5 && Math.abs(obs.userData.trainObj.position.x - playerGroup.position.x) < 25) {
                         isGameOver = true; crashGame("Tertabrak Kereta!");
                     }
+                } else if (obs.userData.type === 'animal') {
+                    obs.position.x += obs.userData.speedX; // Hewan nyebrang maju
+                    obs.rotation.z = Math.sin(frameCount * 0.2) * 0.05; 
                 }
 
-                if (Math.abs(obs.position.z - playerGroup.position.z) < 2.5 && Math.abs(obs.position.x - playerGroup.position.x) < 1.5) {
+                let hitDistZ = 2.8; let hitDistX = 1.8;
+                if(obs.userData.type === 'animal') { hitDistZ = 1.6; hitDistX = 1.5; }
+
+                if (Math.abs(obs.position.z - playerGroup.position.z) < hitDistZ && Math.abs(obs.position.x - playerGroup.position.x) < hitDistX) {
                     if (obs.userData.type === 'ramp' && !isJumping) {
                         playerVelocityY = 0.38; obs.userData.type = 'used'; playSfx('jump');
                     } else if (obs.userData.type === 'oil' && !isJumping) {
@@ -571,8 +652,8 @@
                         let avail = [-4, 0, 4].filter(l => l !== playerTargetX);
                         playerTargetX = avail[Math.floor(Math.random() * 2)];
                         combo = 1; obs.position.y = -10;
-                    } else if (obs.userData.type === 'car' && playerGroup.position.y < 1.2) {
-                        isGameOver = true; cameraShake = 1.0; crashGame("CRASH!");
+                    } else if ((obs.userData.type === 'car' || obs.userData.type === 'animal') && playerGroup.position.y < 1.2) {
+                        isGameOver = true; cameraShake = 1.0; crashGame(obs.userData.type === 'animal' ? "Nabrak Hewan!" : "CRASH!");
                     }
                 }
                 if (obs.position.z > 40) { scene.remove(obs); obstacles.splice(i, 1); }

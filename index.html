@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Road Trip - Ultimate Aesthetic</title>
+    <title>Road Trip - Cinematic Rush</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap');
         
@@ -74,14 +74,14 @@
     
     <script>
         // ==========================================
-        // 1. CURVED WORLD SHADER
+        // 1. CURVED WORLD SHADER (FIXED Z-DISTANCE)
         // ==========================================
         const curveUniforms = {
             curveX: { value: 0.0 }, // Jalan Belok Kiri/Kanan
             curveY: { value: 0.0015 } // Jalan Naik/Turun Bukit
         };
 
-        // Membengkokkan objek environment tanpa merusak mesh biasa
+        // Membengkokkan objek environment TANPA MELAYANG (Hanya pakai nilai Z)
         function makeCurved(material) {
             const mat = material.clone();
             mat.onBeforeCompile = function(shader) {
@@ -100,7 +100,9 @@
                     #endif
                     mvPosition = modelViewMatrix * mvPosition;
                     
-                    float dist = length(mvPosition.xyz);
+                    // PERBAIKAN: Hanya gunakan kedalaman sumbu Z agar objek di pinggir tidak tenggelam/melayang!
+                    float dist = abs(mvPosition.z);
+                    
                     mvPosition.y -= curveY * dist * dist;
                     mvPosition.x -= curveX * dist * dist;
 
@@ -111,7 +113,7 @@
             return mat;
         }
 
-        // Texture Cahaya Lampu
+        // Texture Cahaya Lampu & Jendela
         function createGlowTexture() {
             const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d'); const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
@@ -160,7 +162,7 @@
         // 3. SCENE, CAMERA, & LIGHT BALANCE
         // ==========================================
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x87CEEB, 0.006); 
+        scene.fog = new THREE.FogExp2(0x87CEEB, 0.005); 
         
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5.5, 11); camera.lookAt(0, 1, -15);
@@ -169,25 +171,27 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
+        // PENGATURAN VIBRANT COLORS & CRISP SHADOWS
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.outputEncoding = THREE.sRGBEncoding; 
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.9; 
+        renderer.toneMappingExposure = 1.0; 
         document.body.appendChild(renderer.domElement);
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); scene.add(ambientLight);
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.4); scene.add(hemiLight);
         
-        const sunLight = new THREE.DirectionalLight(0xfffaed, 1.5); 
+        const sunLight = new THREE.DirectionalLight(0xfffaed, 1.8); 
         sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
+        sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
         sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 150;
         sunLight.shadow.camera.left = -30; sunLight.shadow.camera.right = 30;
         sunLight.shadow.camera.top = 40; sunLight.shadow.camera.bottom = -25;
         sunLight.shadow.bias = -0.0005; 
         scene.add(sunLight);
 
+        // Bintang
         const starsGeo = new THREE.BufferGeometry();
         const starsCount = 500; const posArray = new Float32Array(starsCount * 3);
         for(let i = 0; i < starsCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 400; }
@@ -241,19 +245,23 @@
         }
 
         // ==========================================
-        // 5. GENERATOR OBJEK 3D & RINTANGAN (DIPERBAIKI)
+        // 5. GENERATOR OBJEK 3D (LENGKAP & MELENGKUNG)
         // ==========================================
         function createMesh(geo, matOptions) {
             const mesh = new THREE.Mesh(geo, makeCurved(new THREE.MeshStandardMaterial(matOptions)));
             mesh.frustumCulled = false; return mesh;
         }
 
+        // Gunung dengan Puncak Salju (Hanya di kiri)
         let mountains = [];
         function spawnMountain() {
+            const group = new THREE.Group();
             const height = Math.random() * 30 + 35; const radius = Math.random() * 25 + 25;
-            const mesh = createMesh(new THREE.ConeGeometry(radius, height, 6), { color: 0x2e7d32, flatShading: true, roughness: 0.9 });
-            mesh.position.set(-(Math.random() * 20 + 70), height / 2 - 2, -220); // Kiri jauh
-            scene.add(mesh); mountains.push(mesh);
+            const base = createMesh(new THREE.ConeGeometry(radius, height, 6), { color: 0x2e7d32, flatShading: true, roughness: 0.9 });
+            const snow = createMesh(new THREE.ConeGeometry(radius * 0.4, height * 0.4, 6), { color: 0xffffff, flatShading: true, roughness: 0.9 });
+            snow.position.y = height * 0.3; group.add(base); group.add(snow);
+            group.position.set(-(Math.random() * 20 + 70), height / 2 - 2, -220); // Aman di kiri jauh
+            group.frustumCulled = false; scene.add(group); mountains.push(group);
         }
         for(let i=0; i<6; i++) { spawnMountain(); mountains[i].position.z = -150 + (i * 30); }
 
@@ -272,6 +280,7 @@
             const group = new THREE.Group();
             const trunk = createMesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), { color: 0x5d4037, flatShading: true });
             trunk.position.y = 1; trunk.castShadow = true; trunk.receiveShadow = true; group.add(trunk);
+            
             if (type === 'pine') {
                 let yPos = 2.2; let rad = 2.2;
                 for(let i=0; i<3; i++) {
@@ -282,104 +291,64 @@
             } else if (type === 'round') {
                 const top = createMesh(new THREE.IcosahedronGeometry(2.2, 0), { color: 0x4caf50, flatShading: true });
                 top.position.y = 3.5; top.castShadow = true; group.add(top);
-            }
-            group.frustumCulled = false; return group;
-        }
-
-        function createPalmTree() {
-            const group = new THREE.Group();
-            const trunkMat = makeCurved(new THREE.MeshStandardMaterial({ color: 0x795548, flatShading: true }));
-            const leafMat = makeCurved(new THREE.MeshStandardMaterial({ color: 0x43a047, flatShading: true }));
-            for(let i=0; i<6; i++) {
-                const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.35 - i*0.04, 0.4 - i*0.04, 1, 6), trunkMat);
-                seg.position.set(i*0.15, i*0.9 + 0.5, 0); seg.rotation.z = -0.15; seg.castShadow = true; seg.frustumCulled=false; group.add(seg);
-            }
-            for(let a=0; a<5; a++) {
-                const leaf = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.1, 1.0), leafMat);
-                leaf.position.set(0.8, 5.5, 0); leaf.rotation.y = (a * Math.PI / 2.5); leaf.rotation.z = -0.4; leaf.castShadow = true; leaf.frustumCulled=false; group.add(leaf);
-            }
-            group.frustumCulled = false; return group;
-        }
-
-        function createVillageHouse() {
-            const group = new THREE.Group();
-            const wall = createMesh(new THREE.BoxGeometry(4.5, 3.5, 4.5), { color: 0xffffff, flatShading: true }); wall.position.y = 1.75; wall.castShadow = true; group.add(wall);
-            const roof = createMesh(new THREE.ConeGeometry(4.2, 2.5, 4), { color: [0xc62828, 0x1565c0, 0xe65100][Math.floor(Math.random()*3)], flatShading: true }); roof.rotation.y = Math.PI/4; roof.position.y = 4.75; roof.castShadow = true; group.add(roof);
-            const winMat = makeCurved(new THREE.MeshStandardMaterial({ color: 0xb3e5fc, emissive: 0x000000, metalness: 0.5, roughness: 0.2 }));
-            const window = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.2, 1.8), winMat); window.position.set(0, 1.8, 0); window.frustumCulled=false; group.add(window);
-            group.userData = { isHouse: true, winMat: winMat }; group.frustumCulled = false; return group;
-        }
-
-        function createBush() {
-            const group = new THREE.Group();
-            const mat = makeCurved(new THREE.MeshStandardMaterial({ color: 0x43a047, flatShading: true }));
-            for (let i = 0; i < 3; i++) {
-                const m = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7 + Math.random() * 0.4, 0), mat);
-                m.position.set(i * 0.6 - 0.6, 0.5, Math.random() * 0.3); m.castShadow = true; m.frustumCulled=false; group.add(m);
+            } else if (type === 'dead') {
+                const b1 = createMesh(new THREE.CylinderGeometry(0.1, 0.2, 1.5, 4), { color: 0x5d4037, flatShading: true });
+                b1.position.set(0.5, 2.5, 0); b1.rotation.z = -0.6; group.add(b1);
+                const b2 = createMesh(new THREE.CylinderGeometry(0.1, 0.2, 1.2, 4), { color: 0x5d4037, flatShading: true });
+                b2.position.set(-0.5, 2.2, 0); b2.rotation.z = 0.6; group.add(b2);
             }
             group.frustumCulled = false; return group;
         }
 
         function createRock() {
             const group = new THREE.Group();
-            const mat = makeCurved(new THREE.MeshStandardMaterial({ color: 0x90a4ae, flatShading: true, roughness: 0.8 }));
-            const r1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6 + Math.random()*0.4, 0), mat); r1.position.set(0,0.4,0); r1.castShadow=true; r1.frustumCulled=false; group.add(r1);
-            const r2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4 + Math.random()*0.3, 0), mat); r2.position.set(0.6,0.3,0.5); r2.castShadow=true; r2.frustumCulled=false; group.add(r2);
+            const r1 = createMesh(new THREE.DodecahedronGeometry(0.6 + Math.random()*0.4, 0), { color: 0x78909c, flatShading: true, roughness: 0.8 }); 
+            r1.position.set(0,0.4,0); r1.castShadow=true; r1.receiveShadow=true; group.add(r1);
+            const r2 = createMesh(new THREE.DodecahedronGeometry(0.4 + Math.random()*0.3, 0), { color: 0x90a4ae, flatShading: true, roughness: 0.8 }); 
+            r2.position.set(0.6,0.3,0.5); r2.castShadow=true; group.add(r2);
             group.frustumCulled = false; return group;
+        }
+
+        function createVillageHouse() {
+            const group = new THREE.Group();
+            const wall = createMesh(new THREE.BoxGeometry(4.5, 3.5, 4.5), { color: 0xfafafa, flatShading: true }); 
+            wall.position.y = 1.75; wall.castShadow = true; wall.receiveShadow = true; group.add(wall);
+            
+            const roof = createMesh(new THREE.ConeGeometry(4.2, 2.5, 4), { color: [0xc62828, 0x1565c0, 0xe65100][Math.floor(Math.random()*3)], flatShading: true }); 
+            roof.rotation.y = Math.PI/4; roof.position.y = 4.75; roof.castShadow = true; group.add(roof);
+            
+            // Jendela Emissive (Menyala di malam hari)
+            const winMat = makeCurved(new THREE.MeshStandardMaterial({ color: 0xb3e5fc, emissive: 0x000000, metalness: 0.5, roughness: 0.2 }));
+            const window = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.2, 1.8), winMat); window.position.set(0, 1.8, 0); window.frustumCulled=false; group.add(window);
+            
+            const chimney = createMesh(new THREE.BoxGeometry(0.6, 2.0, 0.6), { color: 0x3e2723 }); 
+            chimney.position.set(1.2, 5.0, 1.2); chimney.castShadow = true; group.add(chimney);
+            
+            group.userData = { isHouse: true, winMat: winMat }; group.frustumCulled = false; return group;
         }
 
         function createStreetLight(side) {
             const group = new THREE.Group();
             const pole = createMesh(new THREE.CylinderGeometry(0.12, 0.15, 7, 6), { color: 0x37474f, flatShading: true }); pole.position.y = 3.5; pole.castShadow = true; group.add(pole);
             const arm = createMesh(new THREE.CylinderGeometry(0.08, 0.08, 2.5, 6), { color: 0x37474f, flatShading: true }); arm.rotation.z = Math.PI / 2; arm.position.set(side === 1 ? -1 : 1, 6.8, 0); group.add(arm);
+            
             const bulbMat = makeCurved(new THREE.MeshBasicMaterial({ color: 0x222222 }));
             const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.4), bulbMat); bulb.position.set(side === 1 ? -2.2 : 2.2, 6.7, 0); bulb.frustumCulled=false; group.add(bulb);
             
+            // Pendaran Cahaya Halus (Tanpa Cone Jelek)
             const groundGlowMat = makeCurved(new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
-            const groundGlow = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), groundGlowMat); groundGlow.rotation.x = -Math.PI / 2; groundGlow.position.set(side === 1 ? -2.2 : 2.2, 0.05, 0); groundGlow.frustumCulled=false; group.add(groundGlow);
+            const groundGlow = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), groundGlowMat); groundGlow.rotation.x = -Math.PI / 2; groundGlow.position.set(side === 1 ? -2.2 : 2.2, 0.05, 0); groundGlow.frustumCulled=false; group.add(groundGlow);
 
             group.userData = { isLight: true, bulbMat: bulbMat, glowMat: groundGlowMat }; group.frustumCulled = false; return group;
         }
 
-        function createRiverBridge() {
-            const group = new THREE.Group();
-            const water = createMesh(new THREE.PlaneGeometry(300, 25), {color: 0x0288d1, flatShading: true, roughness: 0.1});
-            water.rotation.x = -Math.PI/2; water.position.y = 0.03; group.add(water);
-            const bridge = createMesh(new THREE.BoxGeometry(14, 0.2, 25), {color: 0x4e342e, flatShading: true});
-            bridge.position.y = 0.05; bridge.receiveShadow = true; group.add(bridge);
-            group.userData = { type: 'scenery' }; group.frustumCulled=false; return group;
-        }
-
-        // --- HEWAN ---
-        function createCow() {
-            const group = new THREE.Group();
-            const matW = makeCurved(new THREE.MeshStandardMaterial({color: 0xffffff, flatShading: true}));
-            const matB = makeCurved(new THREE.MeshStandardMaterial({color: 0x222222, flatShading: true}));
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), matW); body.position.y = 1.2; body.castShadow = true; body.frustumCulled=false; group.add(body);
-            const spot = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.8, 0.8), matB); spot.position.set(0, 1.2, 0.2); spot.frustumCulled=false; group.add(spot);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), matW); head.position.set(0, 1.8, 1.2); head.castShadow = true; head.frustumCulled=false; group.add(head);
-            for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) {
-                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), matB); leg.position.set(x, 0.4, z); leg.castShadow = true; leg.frustumCulled=false; group.add(leg);
-            }
-            group.userData = { type: 'animal' }; group.frustumCulled=false; return group;
-        }
-        function createSheep() {
-            const group = new THREE.Group();
-            const matW = makeCurved(new THREE.MeshStandardMaterial({color: 0xf4f4f4, flatShading: true}));
-            const matD = makeCurved(new THREE.MeshStandardMaterial({color: 0x333333, flatShading: true}));
-            const wool = new THREE.Mesh(new THREE.DodecahedronGeometry(0.9, 0), matW); wool.position.y = 1.1; wool.castShadow = true; wool.frustumCulled=false; group.add(wool);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), matD); head.position.set(0, 1.4, 0.8); head.castShadow = true; head.frustumCulled=false; group.add(head);
-            group.userData = { type: 'animal' }; group.frustumCulled=false; return group;
-        }
-
-        // --- RINTANGAN KENDARAAN (SEMUA RODANYA DIPERBAIKI DENGAN SHADER LENGKUNG) ---
+        // Rintangan
         function createCar(colorHex) {
             const group = new THREE.Group();
             const body = createMesh(new THREE.BoxGeometry(2.2, 0.8, 4.4), {color: colorHex, flatShading: true, roughness: 0.6}); body.position.set(0, 0.7, 0); body.castShadow = true; group.add(body);
             const cabin = createMesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), {color: colorHex, flatShading: true}); cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
             const glass = createMesh(new THREE.BoxGeometry(1.65, 0.5, 2.45), {color: 0x111122, roughness: 0.1}); glass.position.set(0, 1.4, -0.2); group.add(glass);
             
-            // Perbaikan Roda agar ikut melengkung
             for(let x of [-1.15, 1.15]) for(let z of [-1.3, 1.3]) {
                 const w = createMesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 8), {color: 0x111111, flatShading: true}); w.rotation.z=Math.PI/2; w.position.set(x,0.4,z); w.castShadow=true; group.add(w);
             }
@@ -388,45 +357,12 @@
             for(let x of [-0.8, 0.8]) { const tl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), brakeMat); tl.position.set(x, 0.8, 2.21); tl.frustumCulled=false; group.add(tl); }
             
             const hlMat = makeCurved(new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
-            const hl = new THREE.Mesh(new THREE.PlaneGeometry(5, 8), hlMat); hl.rotation.x = -Math.PI/2; hl.position.set(0, 0.05, -3); hl.frustumCulled=false; group.add(hl);
+            const hl = new THREE.Mesh(new THREE.PlaneGeometry(6, 10), hlMat); hl.rotation.x = -Math.PI/2; hl.position.set(0, 0.05, -3); hl.frustumCulled=false; group.add(hl);
 
             group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1, headLightMat: hlMat }; group.frustumCulled=false; return group;
         }
 
-        // --- KERETA API ---
-        function createTrainCrossing() {
-            const group = new THREE.Group();
-            const ironMat = makeCurved(new THREE.MeshStandardMaterial({color: 0xaaaaaa, flatShading: true, metalness: 0.6, roughness: 0.4}));
-            const woodMat = makeCurved(new THREE.MeshStandardMaterial({color: 0x4e342e, flatShading: true}));
-            const ballastMat = makeCurved(new THREE.MeshStandardMaterial({color: 0x546e7a, flatShading: true}));
-            
-            const ballast = new THREE.Mesh(new THREE.BoxGeometry(20, 0.12, 10), ballastMat); ballast.position.set(0, 0.02, 0); ballast.receiveShadow=true; ballast.frustumCulled=false; group.add(ballast);
-            for(let i=0; i<7; i++){ const wood = new THREE.Mesh(new THREE.BoxGeometry(16, 0.1, 0.6), woodMat); wood.position.set(0, 0.08, i*1.4 - 4.2); wood.receiveShadow=true; wood.castShadow=true; wood.frustumCulled=false; group.add(wood); }
-            const rail1 = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.2, 10), ironMat); rail1.position.set(-2, 0.15, 0); rail1.castShadow=true; rail1.frustumCulled=false; group.add(rail1);
-            const rail2 = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.2, 10), ironMat); rail2.position.set(2, 0.15, 0); rail2.castShadow=true; rail2.frustumCulled=false; group.add(rail2);
-
-            const poleMat = makeCurved(new THREE.MeshStandardMaterial({color: 0x212121}));
-            const barMat = makeCurved(new THREE.MeshStandardMaterial({color: 0xd32f2f}));
-            let warningLights = [];
-            for (let side of [-6.5, 6.5]) {
-                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 3.5), poleMat); pole.position.set(side, 1.75, 2.5); pole.castShadow=true; pole.frustumCulled=false; group.add(pole);
-                const bar = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.25, 0.1), barMat); bar.position.set(side === -6.5 ? -3.5 : 3.5, 1.6, 2.5); bar.castShadow=true; bar.frustumCulled=false; group.add(bar);
-                const wlMat = makeCurved(new THREE.MeshBasicMaterial({color: 0x330000}));
-                const wLight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.2), wlMat); wLight.position.set(side, 3.2, 2.6); wLight.frustumCulled=false; group.add(wLight); warningLights.push(wlMat);
-            }
-
-            const trainGroup = new THREE.Group();
-            const tBody = makeCurved(new THREE.MeshStandardMaterial({color: 0xffb300, flatShading: true})); 
-            const loco = new THREE.Mesh(new THREE.BoxGeometry(16, 3.5, 3.2), tBody); loco.position.set(0, 2.2, 0); loco.castShadow=true; loco.frustumCulled=false; trainGroup.add(loco);
-            const cab = new THREE.Mesh(new THREE.BoxGeometry(6, 1.5, 3.2), makeCurved(new THREE.MeshStandardMaterial({color: 0x263238, flatShading: true}))); cab.position.set(-5, 4.5, 0); cab.castShadow=true; cab.frustumCulled=false; trainGroup.add(cab);
-            
-            const car2 = loco.clone(); car2.position.set(17, 2.2, 0); trainGroup.add(car2);
-            const car3 = loco.clone(); car3.position.set(34, 2.2, 0); trainGroup.add(car3);
-            trainGroup.position.set(50, 0, 0); trainGroup.frustumCulled=false; group.add(trainGroup);
-
-            group.userData = { type: 'train_crossing', trainObj: trainGroup, warningLights: warningLights, flashTimer: 0 }; group.frustumCulled=false; return group;
-        }
-
+        // Paket dengan Selotip
         function createPackage() {
             const group = new THREE.Group();
             const box = createMesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), { color: 0x8d6e63, roughness: 0.8 }); group.add(box);
@@ -434,10 +370,13 @@
             group.castShadow = true; group.userData = {type: 'box'}; group.frustumCulled=false; return group;
         }
 
-        function createRamp() { const r=createMesh(new THREE.BoxGeometry(3,0.2,4), {color:0x8B4513, flatShading:true}); r.rotation.x=Math.PI/12; r.position.y=0.5; r.userData={type:'ramp'}; r.castShadow=true; return r; }
         function createOil() { 
+            const group = new THREE.Group();
             const oilMat = makeCurved(new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.1, metalness: 0.8}));
-            const o = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.05,12), oilMat); o.position.y=0.05; o.userData={type:'oil'}; o.frustumCulled=false; return o; 
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.05, 12), oilMat); base.position.y=0.02; base.frustumCulled=false; group.add(base);
+            const sp1 = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.05, 8), oilMat); sp1.position.set(1, 0.02, 0.5); sp1.frustumCulled=false; group.add(sp1);
+            const sp2 = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.05, 8), oilMat); sp2.position.set(-1, 0.02, -0.8); sp2.frustumCulled=false; group.add(sp2);
+            group.userData={type:'oil'}; group.frustumCulled=false; return group;
         }
 
         function createCoin() {
@@ -445,13 +384,36 @@
             coin.rotation.x = Math.PI / 2; coin.position.y = 1.2; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin;
         }
 
+        // Hewan
+        function createCow() {
+            const group = new THREE.Group();
+            const body = createMesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), {color: 0xffffff, flatShading: true}); body.position.y = 1.2; body.castShadow = true; group.add(body);
+            const spot = createMesh(new THREE.BoxGeometry(1.55, 0.8, 0.8), {color: 0x222222, flatShading: true}); spot.position.set(0, 1.2, 0.2); group.add(spot);
+            const head = createMesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), {color: 0xffffff, flatShading: true}); head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head);
+            const snout = createMesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), {color: 0xf48fb1, flatShading:true}); snout.position.set(0, 1.6, 1.6); group.add(snout);
+            for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) {
+                const leg = createMesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), {color: 0x222222, flatShading: true}); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
+            }
+            group.userData = { type: 'animal' }; group.frustumCulled=false; return group;
+        }
+
+        function createSheep() {
+            const group = new THREE.Group();
+            const wool = createMesh(new THREE.DodecahedronGeometry(0.9, 0), {color: 0xf4f4f4, flatShading: true}); wool.position.y = 1.1; wool.castShadow = true; group.add(wool);
+            const head = createMesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), {color: 0x333333, flatShading: true}); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head);
+            for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) {
+                const leg = createMesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), {color: 0x333333, flatShading: true}); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
+            }
+            group.userData = { type: 'animal' }; group.frustumCulled=false; return group;
+        }
+
         // ==========================================
-        // 6. PLAYER, LOADING MANAGER, KONTROL
+        // 6. PLAYER & LOADING MANAGER
         // ==========================================
         let speed = 0.65; let score = 0; let packageCount = 0;
         let combo = 1; let comboTimer = 0; 
         let obstacles = []; let packages = []; let scenery = []; let particles = []; let smokeParticles = [];
-        let playerTargetX = 0; let isGameOver = false; let gameStarted = false; let trainEventActive = false;
+        let playerTargetX = 0; let isGameOver = false; let gameStarted = false; 
         
         let currentBiome = 0; // 0: Gunung, 1: Desa, 2: Pantai
         let targetGroundColor = new THREE.Color(0x388e3c); 
@@ -460,6 +422,7 @@
         let dayTime = Math.PI / 2; let isNight = false; let cameraShake = 0;
 
         let playerGroup = new THREE.Group(); scene.add(playerGroup);
+        const playerAmbientLight = new THREE.PointLight(0xfffaed, 0, 8); playerAmbientLight.position.set(0, 3, 0); playerGroup.add(playerAmbientLight);
         const playerHeadLight = new THREE.SpotLight(0xfffaed, 0, 45, Math.PI/4, 0.5, 1);
         playerHeadLight.position.set(0, 1.5, 0); playerHeadLight.target.position.set(0, 0, -15);
         playerGroup.add(playerHeadLight); playerGroup.add(playerHeadLight.target);
@@ -534,8 +497,6 @@
         // ==========================================
         // 7. GAME LOOP UTAMA
         // ==========================================
-        let frameCount = 0;
-
         function animate() {
             if (isGameOver || !gameStarted) return;
             requestAnimationFrame(animate);
@@ -575,18 +536,19 @@
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
-                skyColor = colorDay; isNight = false; sunLight.intensity = 2.0; hemiLight.intensity = 0.5; ambientLight.intensity = 0.15; starsMat.opacity = 0;
+                skyColor = colorDay; isNight = false; sunLight.intensity = 1.8; hemiLight.intensity = 0.4; ambientLight.intensity = 0.15; starsMat.opacity = 0;
             } else if (sunY > 0) {
                 let lerpFactor = (0.3 - sunY) / 0.3; skyColor.lerpColors(colorDay, colorSunset, lerpFactor);
-                isNight = false; sunLight.intensity = 2.0 - (lerpFactor * 1.8); starsMat.opacity = lerpFactor * 0.5;
+                isNight = false; sunLight.intensity = 1.8 - (lerpFactor * 1.5); starsMat.opacity = lerpFactor * 0.5;
             } else if (sunY > -0.3) {
                 let lerpFactor = (-sunY) / 0.3; skyColor.lerpColors(colorSunset, colorNight, lerpFactor);
-                isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.1; ambientLight.intensity = 0.05; starsMat.opacity = 0.5 + (lerpFactor * 0.5);
+                isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15; ambientLight.intensity = 0.1; starsMat.opacity = 0.5 + (lerpFactor * 0.5);
             } else {
                 skyColor = colorNight; isNight = true; sunLight.intensity = 0; starsMat.opacity = 1;
             }
             scene.background = skyColor; scene.fog.color = skyColor;
             playerHeadLight.intensity = isNight ? 2.5 : 0;
+            playerAmbientLight.intensity = isNight ? 1.5 : 0;
 
             if(comboTimer > 0) {
                 comboTimer -= delta;
@@ -622,7 +584,7 @@
                     obj.position.set(side * (Math.random() * 8 + 8), 0, -180);
                 } else if (currentBiome === 1) { 
                     if(side === -1 && rand < 0.3) obj = createVillageHouse(); 
-                    else if(rand < 0.5) obj = createTree('pine'); else if(rand < 0.7) obj = createFence(); else obj = createBush();
+                    else if(rand < 0.5) obj = createTree('pine'); else if(rand < 0.7) obj = createBush(); else obj = createRock();
                     obj.position.set(side * (Math.random() * 8 + 8), 0, -180);
                 } else { 
                     if(side === 1) { 
@@ -642,32 +604,27 @@
                 const sLight = createStreetLight(lightSide); sLight.position.set(lightSide * 7.5, 0, -180);
                 sLight.scale.set(0.1, 0.1, 0.1); sLight.userData.targetScale = 1; scene.add(sLight); scenery.push(sLight);
             }
-            if (frameCount % 800 === 0) {
-                const river = createRiverBridge(); river.position.set(0, 0, -180); scene.add(river); scenery.push(river);
-            }
 
             // --- SPAWNER RINTANGAN & ITEM ---
-            if (frameCount % 600 === 0) { 
-                const train = createTrainCrossing(); train.position.set(0, 0, -180); scene.add(train); obstacles.push(train);
-            } else if (frameCount % 60 === 0 && !trainEventActive) {
+            if (frameCount % 60 === 0) {
                 let obj; const rand = Math.random();
                 if (rand < 0.6) obj = createCar([0xe63946, 0x1976d2, 0xfbc02d, 0x43a047][Math.floor(Math.random()*4)]);
                 else if (rand < 0.8) obj = createRamp(); 
                 else obj = createOil();
                 obj.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
             }
-            if (frameCount % 180 === 0 && !trainEventActive && currentBiome === 1) { 
+            if (frameCount % 180 === 0 && currentBiome === 1) { 
                 let animal = Math.random() > 0.5 ? createCow() : createSheep();
                 let startSide = Math.random() > 0.5 ? 1 : -1; 
                 animal.position.set(startSide * 7, 0, -180); 
                 animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; 
-                animal.userData.speedX = startSide === 1 ? -0.05 : 0.05; scene.add(animal); obstacles.push(animal);
+                animal.userData.speedX = startSide === 1 ? -0.06 : 0.06; scene.add(animal); obstacles.push(animal);
             }
-            if (frameCount % 85 === 0 && !trainEventActive) {
+            if (frameCount % 85 === 0) {
                 const pkg = createPackage(); pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180); 
                 scene.add(pkg); packages.push(pkg);
             }
-            if (frameCount % 120 === 0 && !trainEventActive) {
+            if (frameCount % 120 === 0) {
                 const lane = [-4, 0, 4][Math.floor(Math.random() * 3)];
                 for(let i=0; i<3; i++){
                     const coin = createCoin(); coin.position.set(lane, 1.2, -180 - (i * 4)); scene.add(coin); packages.push(coin); 
@@ -740,7 +697,6 @@
             }
 
             // --- RINTANGAN & TABRAKAN ---
-            trainEventActive = false;
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.position.z += speed;
@@ -748,16 +704,6 @@
                 if (obs.userData.type === 'car') {
                     obs.position.z += obs.userData.driveSpeed; 
                     if (isNight) obs.userData.headLightMat.opacity = 0.5; else obs.userData.headLightMat.opacity = 0;
-                } else if (obs.userData.type === 'train_crossing') {
-                    trainEventActive = true; obs.userData.trainObj.position.x -= 1.2; 
-                    obs.userData.flashTimer++;
-                    if(obs.userData.flashTimer % 15 === 0) {
-                        let color = obs.userData.warningLights[0].color.getHex() === 0x330000 ? 0xff0000 : 0x330000;
-                        obs.userData.warningLights.forEach(l => l.color.setHex(color));
-                    }
-                    if (Math.abs(obs.position.z - playerGroup.position.z) < 3.5 && Math.abs(obs.userData.trainObj.position.x - playerGroup.position.x) < 25) {
-                        isGameOver = true; crashGame("Tertabrak Kereta!");
-                    }
                 } else if (obs.userData.type === 'animal') {
                     obs.position.x += obs.userData.speedX;
                     obs.position.y = Math.abs(Math.sin(frameCount * 0.2)) * 0.5;

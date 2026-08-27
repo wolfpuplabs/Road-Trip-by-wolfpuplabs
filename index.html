@@ -3,94 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Ngantor - Kurir Paket Low Poly</title>
+    <title>Ngantor - Kurir Paket Extreme</title>
     <style>
         * { box-sizing: border-box; }
         body { 
-            margin: 0; 
-            overflow: hidden; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; overflow: hidden; 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
             background-color: #87CEEB; 
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation; 
+            user-select: none; -webkit-user-select: none; touch-action: manipulation; 
         }
-        canvas { 
-            display: block; 
-            width: 100vw;
-            height: 100vh;
-        }
+        canvas { display: block; width: 100vw; height: 100vh; }
         
-        /* UI HUD Header */
-        #ui-container { 
-            position: absolute; 
-            top: 15px; 
-            left: 0;
-            width: 100%; 
-            text-align: center; 
-            pointer-events: none; 
-            z-index: 100;
-        }
-        #title { 
-            color: #FFB347; 
-            font-size: 38px; 
-            font-weight: 900; 
-            text-shadow: 3px 3px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff; 
-            margin: 0; 
-            letter-spacing: 1px;
-        }
-        .hud-card {
-            display: inline-block;
-            background: rgba(0, 0, 0, 0.45);
-            padding: 6px 16px;
-            border-radius: 20px;
-            margin: 4px;
-            backdrop-filter: blur(4px);
-        }
-        .hud-text { 
-            color: white; 
-            font-size: 18px; 
-            font-weight: bold; 
-            text-shadow: 1px 1px 2px #000; 
-        }
+        /* UI HUD */
+        #ui-container { position: absolute; top: 15px; left: 0; width: 100%; text-align: center; pointer-events: none; z-index: 100; display: none; }
+        #title { color: #FFB347; font-size: 38px; font-weight: 900; text-shadow: 3px 3px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff; margin: 0; }
+        .hud-card { display: inline-block; background: rgba(0, 0, 0, 0.45); padding: 6px 16px; border-radius: 20px; margin: 4px; backdrop-filter: blur(4px); }
+        .hud-text { color: white; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
         
-        /* Tombol Kontrol Kiri / Kanan */
-        #controls { 
-            position: absolute; 
-            bottom: 25px; 
-            left: 0;
-            width: 100%; 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 0 25px;
-            pointer-events: none; 
-            z-index: 1000;
-        }
-        .btn { 
-            pointer-events: auto; 
-            width: 42vw;
-            max-width: 180px;
-            padding: 18px 0; 
-            font-size: 20px; 
-            font-weight: 900; 
-            background: #FFB347; 
-            border: 4px solid #ffffff; 
-            border-radius: 20px; 
-            color: white; 
-            cursor: pointer; 
-            text-align: center;
-            box-shadow: 0 8px 0 #d18200, 0 10px 15px rgba(0,0,0,0.3); 
-            user-select: none; 
-            touch-action: manipulation;
-            transition: transform 0.05s ease;
-        }
-        .btn:active { 
-            transform: translateY(6px); 
-            box-shadow: 0 2px 0 #d18200, 0 4px 8px rgba(0,0,0,0.3); 
-        }
+        /* Kontrol Kiri Kanan */
+        #controls { position: absolute; bottom: 25px; left: 0; width: 100%; display: none; justify-content: space-between; padding: 0 25px; pointer-events: none; z-index: 1000; }
+        .btn { pointer-events: auto; width: 42vw; max-width: 180px; padding: 18px 0; font-size: 20px; font-weight: 900; background: #FFB347; border: 4px solid #ffffff; border-radius: 20px; color: white; cursor: pointer; text-align: center; box-shadow: 0 8px 0 #d18200; transition: transform 0.05s ease; }
+        .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #d18200; }
+
+        /* Start Screen */
+        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(135, 206, 235, 0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
+        #start-btn { padding: 15px 50px; font-size: 28px; font-weight: 900; background: #4CAF50; border: 5px solid #fff; border-radius: 15px; color: white; cursor: pointer; box-shadow: 0 8px 0 #2E7D32; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
+    <audio id="bgm" loop preload="auto">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="start-screen">
+        <h1 style="color:white; font-size: 45px; text-shadow: 3px 3px 0 #333; margin-bottom: 40px;">NGANTOR RUSH</h1>
+        <button id="start-btn">PLAY</button>
+        <p style="color: #333; font-weight: bold; margin-top: 20px;">Hindari Mobil, Ambil Paket, Pake Jumpingan!</p>
+    </div>
+
     <div id="ui-container">
         <h1 id="title">Ngantor</h1>
         <div class="hud-card"><span class="hud-text">Skor: <span id="score">0</span></span></div>
@@ -107,10 +58,47 @@
     
     <script>
         // ==========================================
-        // 1. SCENE, CAMERA, & RENDERER
+        // 1. SISTEM AUDIO & SFX (Web Audio API)
+        // ==========================================
+        let audioCtx;
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const bgm = document.getElementById('bgm');
+            bgm.volume = 0.4;
+            bgm.play().catch(e => console.log("BGM error:", e));
+        }
+
+        function playSfxCoin() {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        function playSfxSlip() {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // ==========================================
+        // 2. SCENE SETUP
         // ==========================================
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x7ec0ee); // Biru Langit
+        scene.background = new THREE.Color(0x7ec0ee);
         scene.fog = new THREE.FogExp2(0x7ec0ee, 0.008);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -119,358 +107,269 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // ==========================================
-        // 2. PENCAHAYAAN (LIGHTING)
-        // ==========================================
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
-        
         const dirLight = new THREE.DirectionalLight(0xfffaed, 0.9);
         dirLight.position.set(30, 50, 20);
         dirLight.castShadow = true;
-        dirLight.shadow.mapSize.width = 1024;
-        dirLight.shadow.mapSize.height = 1024;
-        dirLight.shadow.camera.near = 0.5;
-        dirLight.shadow.camera.far = 150;
-        dirLight.shadow.camera.left = -20;
-        dirLight.shadow.camera.right = 20;
-        dirLight.shadow.camera.top = 20;
-        dirLight.shadow.camera.bottom = -20;
         scene.add(dirLight);
 
-        // ==========================================
-        // 3. JALAN & PERMUKAAN (Mencegah Z-Fighting)
-        // ==========================================
-        // Rumput Kiri/Kanan
-        const groundGeo = new THREE.PlaneGeometry(250, 300);
-        const groundMat = new THREE.MeshStandardMaterial({ color: 0x7ecc49, flatShading: true });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2;
-        ground.position.y = 0;
-        ground.receiveShadow = true;
-        scene.add(ground);
-
-        // Aspal Utama (dinaikkan sedikit Y=0.02)
-        const roadGeo = new THREE.PlaneGeometry(12, 300);
-        const roadMat = new THREE.MeshStandardMaterial({ color: 0x3d3d3d, roughness: 0.8 });
-        const road = new THREE.Mesh(roadGeo, roadMat);
-        road.rotation.x = -Math.PI / 2;
-        road.position.y = 0.02;
-        road.receiveShadow = true;
-        scene.add(road);
-
-        // Trotoar Pinggir Jalan
-        for (let side of [-6.2, 6.2]) {
-            const curbGeo = new THREE.BoxGeometry(0.4, 0.2, 300);
-            const curbMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, flatShading: true });
-            const curb = new THREE.Mesh(curbGeo, curbMat);
-            curb.position.set(side, 0.1, 0);
-            scene.add(curb);
-        }
-
-        // Garis Jalur
-        for (let laneX of [-2, 2]) {
-            for (let z = -150; z < 100; z += 10) {
-                const lineGeo = new THREE.PlaneGeometry(0.25, 5);
-                const lineMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
-                const line = new THREE.Mesh(lineGeo, lineMat);
-                line.rotation.x = -Math.PI / 2;
-                line.position.set(laneX, 0.03, z);
-                scene.add(line);
-            }
-        }
+        // Ground & Road
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(250, 300), new THREE.MeshStandardMaterial({ color: 0x7ecc49 }));
+        ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(12, 300), new THREE.MeshStandardMaterial({ color: 0x3d3d3d }));
+        road.rotation.x = -Math.PI / 2; road.position.y = 0.02; road.receiveShadow = true; scene.add(road);
 
         // ==========================================
-        // 4. GENERATOR ENVIRONMENT (Awan, Gunung, Pohon, Semak, Batu)
+        // 3. GENERATOR KENDARAAN (SEDAN, BUS, TRUCK, JEEP)
         // ==========================================
-        
-        // Background Pegunungan Di Horizon
-        function createMountains() {
-            const mountGroup = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: 0x5a8f4c, flatShading: true });
-            
-            for (let i = 0; i < 16; i++) {
-                const height = Math.random() * 25 + 20;
-                const radius = Math.random() * 20 + 15;
-                const geo = new THREE.ConeGeometry(radius, height, 5);
-                const mesh = new THREE.Mesh(geo, mat);
-                
-                const side = i % 2 === 0 ? -1 : 1;
-                mesh.position.set(side * (Math.random() * 30 + 35), height / 2 - 2, (i * -18) - 20);
-                mountGroup.add(mesh);
-            }
-            scene.add(mountGroup);
-        }
-        createMountains();
-
-        // Awan Low Poly Floating
-        let clouds = [];
-        function createCloud() {
-            const cloudGroup = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 1 });
-            
-            const numPuffs = Math.floor(Math.random() * 3) + 3;
-            for (let i = 0; i < numPuffs; i++) {
-                const size = Math.random() * 2 + 1.5;
-                const geo = new THREE.DodecahedronGeometry(size, 0);
-                const mesh = new THREE.Mesh(geo, mat);
-                mesh.position.set(i * 1.5, Math.random() * 0.8, Math.random() * 0.8);
-                cloudGroup.add(mesh);
-            }
-            
-            const side = Math.random() > 0.5 ? 1 : -1;
-            cloudGroup.position.set(side * (Math.random() * 40 + 10), Math.random() * 10 + 20, -180);
-            scene.add(cloudGroup);
-            clouds.push(cloudGroup);
+        function createWheel(x, y, z) {
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 8), new THREE.MeshStandardMaterial({color: 0x111, flatShading: true}));
+            wheel.rotation.z = Math.PI / 2; wheel.position.set(x, y, z); wheel.castShadow = true;
+            return wheel;
         }
 
-        // Variasi Pohon 1: Pinus
-        function createPineTree() {
+        function createVehicle() {
             const group = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), new THREE.MeshStandardMaterial({ color: 0x6e4726, flatShading: true }));
-            trunk.position.y = 1;
-            trunk.castShadow = true;
-            group.add(trunk);
+            const type = Math.floor(Math.random() * 4); // 0:Sedan, 1:Bus, 2:Truck, 3:Jeep
+            let bodyColor = [0xd90429, 0x00b4d8, 0xffb703, 0x8ac926][Math.floor(Math.random()*4)];
 
-            const mat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, flatShading: true });
-            const layers = [ {r: 2, h: 2.5, y: 2.2}, {r: 1.6, h: 2, y: 3.4}, {r: 1.1, h: 1.8, y: 4.4} ];
-            layers.forEach(l => {
-                const c = new THREE.Mesh(new THREE.ConeGeometry(l.r, l.h, 5), mat);
-                c.position.y = l.y;
-                c.castShadow = true;
-                group.add(c);
-            });
-            return group;
-        }
-
-        // Variasi Pohon 2: Rindang (Round Tree)
-        function createRoundTree() {
-            const group = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2.5, 6), new THREE.MeshStandardMaterial({ color: 0x523a28, flatShading: true }));
-            trunk.position.y = 1.25;
-            trunk.castShadow = true;
-            group.add(trunk);
-
-            const leafMat = new THREE.MeshStandardMaterial({ color: 0x52b788, flatShading: true });
-            const top = new THREE.Mesh(new THREE.IcosahedronGeometry(2.2, 0), leafMat);
-            top.position.y = 3.5;
-            top.castShadow = true;
-            group.add(top);
-            return group;
-        }
-
-        // Semak (Bush)
-        function createBush() {
-            const group = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: 0x74c69d, flatShading: true });
-            for (let i = 0; i < 3; i++) {
-                const m = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.4, 0), mat);
-                m.position.set(i * 0.6 - 0.6, 0.5, Math.random() * 0.4);
-                m.castShadow = true;
-                group.add(m);
+            if (type === 0) { // SEDAN
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1, 4), new THREE.MeshStandardMaterial({color: bodyColor}));
+                body.position.y = 0.8; body.castShadow = true; group.add(body);
+                const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.8, 2), new THREE.MeshStandardMaterial({color: 0xffffff}));
+                cabin.position.set(0, 1.7, -0.2); cabin.castShadow = true; group.add(cabin);
+                group.add(createWheel(-1.1, 0.4, 1.2)); group.add(createWheel(1.1, 0.4, 1.2));
+                group.add(createWheel(-1.1, 0.4, -1.2)); group.add(createWheel(1.1, 0.4, -1.2));
+            } else if (type === 1) { // BUS
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.5, 6), new THREE.MeshStandardMaterial({color: 0xffb703}));
+                body.position.y = 1.5; body.castShadow = true; group.add(body);
+                const window = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 5.8), new THREE.MeshStandardMaterial({color: 0x333333}));
+                window.position.y = 1.8; group.add(window);
+                group.add(createWheel(-1.2, 0.4, 2)); group.add(createWheel(1.2, 0.4, 2));
+                group.add(createWheel(-1.2, 0.4, -2)); group.add(createWheel(1.2, 0.4, -2));
+            } else if (type === 2) { // TRUCK
+                const cab = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.8), new THREE.MeshStandardMaterial({color: bodyColor}));
+                cab.position.set(0, 1.4, 1.5); cab.castShadow = true; group.add(cab);
+                const bed = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 4), new THREE.MeshStandardMaterial({color: 0x888888}));
+                bed.position.set(0, 1.2, -1.5); bed.castShadow = true; group.add(bed);
+                group.add(createWheel(-1.2, 0.4, 1.5)); group.add(createWheel(1.2, 0.4, 1.5));
+                group.add(createWheel(-1.2, 0.4, -1.5)); group.add(createWheel(1.2, 0.4, -1.5));
+                group.add(createWheel(-1.2, 0.4, -2.8)); group.add(createWheel(1.2, 0.4, -2.8));
+            } else { // JEEP
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 3.5), new THREE.MeshStandardMaterial({color: 0x38b000}));
+                body.position.y = 1.2; body.castShadow = true; group.add(body);
+                group.add(createWheel(-1.4, 0.6, 1.2)); group.add(createWheel(1.4, 0.6, 1.2)); // Roda besar
+                group.add(createWheel(-1.4, 0.6, -1.2)); group.add(createWheel(1.4, 0.6, -1.2));
             }
             return group;
         }
 
-        // Batu (Rock)
-        function createRock() {
-            const mat = new THREE.MeshStandardMaterial({ color: 0x8d99ae, flatShading: true });
-            const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7 + Math.random() * 0.6, 0), mat);
-            rock.rotation.set(Math.random(), Math.random(), Math.random());
-            rock.position.y = 0.4;
-            rock.castShadow = true;
-            return rock;
+        // ==========================================
+        // 4. GENERATOR RINTANGAN & JALANAN VARIASI
+        // ==========================================
+        function createRamp() {
+            const geo = new THREE.BoxGeometry(3, 0.2, 4);
+            const mat = new THREE.MeshStandardMaterial({color: 0x8B4513});
+            const ramp = new THREE.Mesh(geo, mat);
+            ramp.rotation.x = Math.PI / 12; // Miring
+            ramp.position.y = 0.5;
+            ramp.userData = { type: 'ramp' };
+            return ramp;
+        }
+
+        function createOilSlick() {
+            const geo = new THREE.CylinderGeometry(1.5, 1.5, 0.05, 12);
+            const mat = new THREE.MeshBasicMaterial({color: 0x111111});
+            const oil = new THREE.Mesh(geo, mat);
+            oil.position.y = 0.05;
+            oil.userData = { type: 'oil' };
+            return oil;
+        }
+
+        function createRailway() {
+            const group = new THREE.Group();
+            const woodMat = new THREE.MeshStandardMaterial({color: 0x5c4033});
+            const ironMat = new THREE.MeshStandardMaterial({color: 0x999999});
+            for(let i=0; i<3; i++){
+                const wood = new THREE.Mesh(new THREE.BoxGeometry(14, 0.1, 0.6), woodMat);
+                wood.position.set(0, 0.03, i*1.5 - 1.5);
+                group.add(wood);
+            }
+            const rail1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 6), ironMat);
+            rail1.position.set(-2, 0.1, 0); group.add(rail1);
+            const rail2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 6), ironMat);
+            rail2.position.set(2, 0.1, 0); group.add(rail2);
+            group.userData = { type: 'rail' };
+            return group;
         }
 
         // ==========================================
-        // 5. VARIABLE GAME & PLAYER GROUP
+        // 5. GAME LOGIC & VARIABLES
         // ==========================================
-        let speed = 0.6;
-        let score = 0;
-        let packageCount = 0;
-        let obstacles = [];
-        let packages = [];
-        let scenery = [];
-        let playerTargetX = 0;
-        let isGameOver = false;
+        let speed = 0.6; let score = 0; let packageCount = 0;
+        let obstacles = []; let packages = [];
+        let playerTargetX = 0; let isGameOver = false; let gameStarted = false;
+
+        // Fisika Loncatan (Jump)
+        let playerVelocityY = 0;
+        let isJumping = false;
+        const gravity = -0.015;
 
         let playerGroup = new THREE.Group();
         scene.add(playerGroup);
-        
-        let playerModel;
-        let mixer; 
-        const clock = new THREE.Clock();
+        let playerModel; let mixer; const clock = new THREE.Clock();
 
-        // ==========================================
-        // 6. MEMUAT MODEL MOTOR
-        // ==========================================
         const loader = new THREE.GLTFLoader();
-        loader.load(
-            'Ngantor rider.glb', 
-            function(gltf) {
-                playerModel = gltf.scene;
-                playerModel.scale.set(1.2, 1.2, 1.2); 
-                playerModel.rotation.y = Math.PI;
-                
-                playerModel.traverse(function(node) {
-                    if (node.isMesh) {
-                        node.castShadow = true;
-                        node.receiveShadow = true;
-                    }
-                });
-                
-                playerGroup.add(playerModel);
-
-                // Penyesuaian Ketinggian Otomatis agar Roda di Atas Aspal
-                const box = new THREE.Box3().setFromObject(playerModel);
-                playerModel.position.y = -box.min.y + 0.02; 
-
-                if (gltf.animations && gltf.animations.length > 0) {
-                    mixer = new THREE.AnimationMixer(playerModel);
-                    mixer.clipAction(gltf.animations[0]).play();
-                }
-            }, 
-            undefined, 
-            function(error) {
-                console.error('Gagal memuat model 3D:', error);
+        loader.load('Ngantor rider.glb', function(gltf) {
+            playerModel = gltf.scene;
+            playerModel.scale.set(1.2, 1.2, 1.2); 
+            playerModel.rotation.y = Math.PI;
+            playerModel.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+            playerGroup.add(playerModel);
+            const box = new THREE.Box3().setFromObject(playerModel);
+            playerModel.position.y = -box.min.y + 0.02; 
+            if (gltf.animations.length > 0) {
+                mixer = new THREE.AnimationMixer(playerModel);
+                mixer.clipAction(gltf.animations[0]).play();
             }
-        );
-
-        // ==========================================
-        // 7. KONTROL PEMAIN (Tombol & Keyboard)
-        // ==========================================
-        function moveLeft() { if (playerTargetX > -4) playerTargetX -= 4; }
-        function moveRight() { if (playerTargetX < 4) playerTargetX += 4; }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a') moveLeft();
-            if (e.key === 'ArrowRight' || e.key === 'd') moveRight();
         });
 
-        const btnLeft = document.getElementById('btn-left');
-        const btnRight = document.getElementById('btn-right');
+        // Kontrol
+        function moveLeft() { if(playerTargetX > -4 && !isJumping) playerTargetX -= 4; }
+        function moveRight() { if(playerTargetX < 4 && !isJumping) playerTargetX += 4; }
+        window.addEventListener('keydown', (e) => { if(e.key === 'ArrowLeft'||e.key === 'a') moveLeft(); if(e.key === 'ArrowRight'||e.key === 'd') moveRight(); });
+        document.getElementById('btn-left').addEventListener('pointerdown', (e) => { e.preventDefault(); moveLeft(); });
+        document.getElementById('btn-right').addEventListener('pointerdown', (e) => { e.preventDefault(); moveRight(); });
 
-        btnLeft.addEventListener('pointerdown', (e) => { e.preventDefault(); moveLeft(); });
-        btnRight.addEventListener('pointerdown', (e) => { e.preventDefault(); moveRight(); });
+        // Tombol Start
+        document.getElementById('start-btn').addEventListener('click', () => {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('ui-container').style.display = 'block';
+            document.getElementById('controls').style.display = 'flex';
+            initAudio();
+            gameStarted = true;
+            animate();
+        });
 
         // ==========================================
-        // 8. SPAWNER RINTANGAN & ITEM
+        // 6. SPAWNER LINGKUNGAN (Pohon & Batu tetap ada)
         // ==========================================
+        let scenery = [];
         function spawnScenery() {
             const side = Math.random() > 0.5 ? 1 : -1;
-            const xPos = side * (Math.random() * 12 + 8);
-            
-            const rand = Math.random();
-            let obj;
-            if (rand < 0.35) obj = createPineTree();
-            else if (rand < 0.65) obj = createRoundTree();
-            else if (rand < 0.85) obj = createBush();
-            else obj = createRock();
-
-            obj.position.set(xPos, 0, -180);
-            scene.add(obj);
-            scenery.push(obj);
+            const geo = new THREE.ConeGeometry(1.5, 4, 5);
+            const mat = new THREE.MeshStandardMaterial({color: 0x2d6a4f, flatShading:true});
+            const tree = new THREE.Mesh(geo, mat);
+            tree.position.set(side * (Math.random() * 10 + 8), 2, -180);
+            scene.add(tree); scenery.push(tree);
         }
 
         function spawnObstacle() {
-            const carGroup = new THREE.Group();
-            const body = new THREE.Mesh(
-                new THREE.BoxGeometry(2.4, 1.4, 4), 
-                new THREE.MeshStandardMaterial({ color: 0xd90429, flatShading: true })
-            );
-            body.position.y = 0.9;
-            body.castShadow = true;
-            carGroup.add(body);
-
-            const top = new THREE.Mesh(
-                new THREE.BoxGeometry(2, 1, 2.2), 
-                new THREE.MeshStandardMaterial({ color: 0x111111, flatShading: true })
-            );
-            top.position.set(0, 1.8, -0.2);
-            carGroup.add(top);
+            let obj;
+            const rand = Math.random();
+            if (rand < 0.6) { obj = createVehicle(); obj.userData = {type: 'car'}; } // 60% Mobil
+            else if (rand < 0.8) { obj = createRamp(); } // 20% Jumpingan
+            else if (rand < 0.9) { obj = createOilSlick(); } // 10% Oli Licin
+            else { obj = createRailway(); } // 10% Rel Kereta Visual
 
             const lanes = [-4, 0, 4];
-            carGroup.position.set(lanes[Math.floor(Math.random() * 3)], 0, -180);
-            scene.add(carGroup);
-            obstacles.push(carGroup);
+            obj.position.set(lanes[Math.floor(Math.random() * 3)], 0, -180);
+            if(obj.userData.type === 'rail') obj.position.x = 0; // Rel selalu di tengah melintang
+            
+            scene.add(obj); obstacles.push(obj);
         }
 
         function spawnPackage() {
-            const geo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
-            const mat = new THREE.MeshStandardMaterial({ color: 0xd4a373, flatShading: true });
-            const pkg = new THREE.Mesh(geo, mat);
+            const pkg = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xd4a373 }));
             pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180);
-            pkg.castShadow = true;
-            scene.add(pkg);
-            packages.push(pkg);
+            scene.add(pkg); packages.push(pkg);
         }
 
         // ==========================================
-        // 9. GAME LOOP UTAMA
+        // 7. GAME LOOP UTAMA
         // ==========================================
         let frameCount = 0;
 
         function animate() {
-            if (isGameOver) return;
+            if (isGameOver || !gameStarted) return;
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
-            
             if (mixer) mixer.update(delta);
 
-            // Pergerakan Motor Halus Kiri/Kanan
-            playerGroup.position.x += (playerTargetX - playerGroup.position.x) * 0.18;
+            // Gerakan Kiri Kanan & Loncatan (Jump Physics)
+            playerGroup.position.x += (playerTargetX - playerGroup.position.x) * 0.15;
+            
+            playerGroup.position.y += playerVelocityY;
+            if (playerGroup.position.y > 0) {
+                playerVelocityY += gravity; // Tarikan gravitasi
+                isJumping = true;
+            } else {
+                playerGroup.position.y = 0;
+                playerVelocityY = 0;
+                isJumping = false;
+            }
+            // Efek kamera naik dikit saat lompat
+            camera.position.y = 5.5 + (playerGroup.position.y * 0.5);
 
             frameCount++;
             if (frameCount % 6 === 0) spawnScenery();
-            if (frameCount % 45 === 0) createCloud();
             if (frameCount % 60 === 0) spawnObstacle();
             if (frameCount % 85 === 0) spawnPackage();
 
-            // Gerakkan Awan
-            for (let i = clouds.length - 1; i >= 0; i--) {
-                clouds[i].position.z += speed * 0.4;
-                if (clouds[i].position.z > 30) { scene.remove(clouds[i]); clouds.splice(i, 1); }
-            }
-
-            // Gerakkan Pohon & Semak
+            // Loop Hapus Scenery
             for (let i = scenery.length - 1; i >= 0; i--) {
                 scenery[i].position.z += speed;
                 if (scenery[i].position.z > 30) { scene.remove(scenery[i]); scenery.splice(i, 1); }
             }
 
-            // Gerakkan & Ambil Paket
+            // Ambil Paket
             for (let i = packages.length - 1; i >= 0; i--) {
                 let pkg = packages[i];
-                pkg.position.z += speed;
-                pkg.rotation.y += 0.05;
+                pkg.position.z += speed; pkg.rotation.y += 0.05;
 
-                if (Math.abs(pkg.position.z - playerGroup.position.z) < 2.2 && Math.abs(pkg.position.x - playerGroup.position.x) < 1.8) {
-                    packageCount++;
-                    score += 300;
+                if (Math.abs(pkg.position.z - playerGroup.position.z) < 2.2 && Math.abs(pkg.position.x - playerGroup.position.x) < 1.8 && !isJumping) {
+                    packageCount++; score += 300;
                     document.getElementById('package-count').innerText = packageCount;
-                    scene.remove(pkg);
-                    packages.splice(i, 1);
+                    playSfxCoin(); // SFX Ambil Box!
+                    scene.remove(pkg); packages.splice(i, 1);
                     continue;
                 }
                 if (pkg.position.z > 30) { scene.remove(pkg); packages.splice(i, 1); }
             }
 
-            // Gerakkan Mobil & Deteksi Tabrakan
+            // Deteksi Tabrakan, Oli, & Jumpingan
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.position.z += speed;
 
                 if (Math.abs(obs.position.z - playerGroup.position.z) < 2.8 && Math.abs(obs.position.x - playerGroup.position.x) < 1.8) {
-                    isGameOver = true;
-                    setTimeout(() => {
-                        alert("💥 CRASH!\nTotal Paket terkumpul: " + packageCount + "\nSkor Akhir: " + Math.floor(score / 10));
-                        location.reload();
-                    }, 50);
+                    
+                    if (obs.userData.type === 'ramp' && !isJumping) {
+                        // Kena Jumpingan!
+                        playerVelocityY = 0.35; // Lempar motor ke atas
+                        obs.userData.type = 'used'; // Supaya nggak trigger berkali-kali
+                    } 
+                    else if (obs.userData.type === 'oil' && !isJumping) {
+                        // Kena Oli! Slip ke jalur lain
+                        playSfxSlip();
+                        let availableLanes = [-4, 0, 4].filter(l => l !== playerTargetX);
+                        playerTargetX = availableLanes[Math.floor(Math.random() * 2)];
+                        obs.position.y = -10; // Sembunyikan oli
+                    } 
+                    else if (obs.userData.type === 'car') {
+                        // Nabrak Mobil saat tidak melompat cukup tinggi
+                        if(playerGroup.position.y < 1.5) {
+                            isGameOver = true;
+                            setTimeout(() => {
+                                alert("💥 CRASH!\nTotal Paket: " + packageCount + "\nSkor Akhir: " + Math.floor(score / 10));
+                                location.reload();
+                            }, 50);
+                        }
+                    }
                 }
                 if (obs.position.z > 30) { scene.remove(obs); obstacles.splice(i, 1); }
             }
@@ -481,14 +380,6 @@
 
             renderer.render(scene, camera);
         }
-
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-        });
-
-        animate();
     </script>
 </body>
 </html>

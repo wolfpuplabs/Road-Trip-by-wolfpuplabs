@@ -2,25 +2,35 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ngantor - Low Poly Runner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ngantor - Kurir Paket</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: #87CEEB; touch-action: none; }
         canvas { display: block; }
+        
+        /* UI Styling */
         #ui-container { position: absolute; top: 20px; width: 100%; text-align: center; pointer-events: none; }
         #title { color: #FFB347; font-size: 40px; font-weight: 900; text-shadow: 2px 2px 0 #fff; margin: 0; }
-        #score-display { color: white; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 0 #333; margin-top: 10px; }
-        #instructions { position: absolute; bottom: 30px; width: 100%; text-align: center; color: white; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 0 #000; pointer-events: none; }
+        .hud-text { color: white; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 0 #333; margin-top: 10px; }
+        
+        /* Tombol Kontrol */
+        #controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-around; pointer-events: none; }
+        .btn { pointer-events: auto; padding: 15px 30px; font-size: 24px; font-weight: bold; background: #FFB347; border: 3px solid #fff; border-radius: 12px; color: white; cursor: pointer; box-shadow: 0 5px 0 #cc8400; user-select: none; }
+        .btn:active { transform: translateY(5px); box-shadow: none; }
     </style>
 </head>
 <body>
     <div id="ui-container">
         <h1 id="title">Ngantor</h1>
-        <div id="score-display">Score: <span id="score">0</span></div>
+        <div class="hud-text">Skor: <span id="score">0</span></div>
+        <div class="hud-text" style="color: #FFD700;">📦 Paket: <span id="package-count">0</span></div>
     </div>
-    <div id="instructions">⬅️ Kiri / Kanan ➡️</div>
     
-    <!-- Three.js Core & GLTFLoader -->
+    <div id="controls">
+        <button id="btn-left" class="btn">⬅️ KIRI</button>
+        <button id="btn-right" class="btn">KANAN ➡️</button>
+    </div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     
@@ -49,7 +59,6 @@
         // Ground & Road
         const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0x7CFC00 }));
         ground.rotation.x = -Math.PI / 2;
-        ground.position.y = -0.01;
         ground.receiveShadow = true;
         scene.add(ground);
 
@@ -58,27 +67,26 @@
         road.receiveShadow = true;
         scene.add(road);
 
-        // Game Variables
+        // Variables
         let speed = 0.6;
         let score = 0;
+        let packageScore = 0;
         let obstacles = [];
+        let packages = [];
         let scenery = [];
         let playerTargetX = 0;
         let isGameOver = false;
 
-        // Player Variables for Custom Model
         let playerModel;
-        let mixer; // Untuk animasi glTF
+        let mixer; 
         const clock = new THREE.Clock();
 
-        // Memuat file player.gltf
+        // Load 3D Model
         const loader = new THREE.GLTFLoader();
         loader.load('player.gltf', function(gltf) {
             playerModel = gltf.scene;
-            
-            // Atur skala dan rotasi agar sesuai menghadap ke depan
             playerModel.scale.set(1.5, 1.5, 1.5); 
-            playerModel.rotation.y = Math.PI; // Putar 180 derajat jika model membelakangi jalan
+            playerModel.rotation.y = Math.PI; 
             playerModel.position.set(0, 0, 0);
             
             playerModel.traverse(function(node) {
@@ -89,44 +97,54 @@
             });
             scene.add(playerModel);
 
-            // Memutar Animasi dari glTF
             if (gltf.animations && gltf.animations.length > 0) {
                 mixer = new THREE.AnimationMixer(playerModel);
-                const action = mixer.clipAction(gltf.animations[0]); // Animasi "rig|rig|forward|forward"
-                action.play();
+                mixer.clipAction(gltf.animations[0]).play();
             }
-        }, undefined, function(error) {
-            console.error('Error loading model:', error);
         });
 
-        // Kontrol
+        // KONTROL: Keyboard
         window.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && playerTargetX > -4) playerTargetX -= 4;
             if (e.key === 'ArrowRight' && playerTargetX < 4) playerTargetX += 4;
         });
 
+        // KONTROL: Tombol HP (PointerDown support Mouse & Touch)
+        document.getElementById('btn-left').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (playerTargetX > -4) playerTargetX -= 4;
+        });
+        document.getElementById('btn-right').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (playerTargetX < 4) playerTargetX += 4;
+        });
+
+        // SPAWNER
         function spawnScenery() {
             const geo = new THREE.ConeGeometry(1.5, 4, 4);
             const mat = new THREE.MeshStandardMaterial({ color: 0x228b22, flatShading: true });
             const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.y = 2;
-            const side = Math.random() > 0.5 ? 1 : -1;
-            mesh.position.x = side * (Math.random() * 15 + 8);
-            mesh.position.z = -120;
+            mesh.position.set((Math.random() > 0.5 ? 1 : -1) * (Math.random() * 15 + 8), 2, -120);
             scene.add(mesh);
             scenery.push(mesh);
         }
 
         function spawnObstacle() {
             const geo = new THREE.BoxGeometry(2.5, 2, 4);
-            const mat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+            const mat = new THREE.MeshStandardMaterial({ color: 0xff3333 }); // Mobil Merah
             const obstacle = new THREE.Mesh(geo, mat);
-            const lanes = [-4, 0, 4];
-            obstacle.position.x = lanes[Math.floor(Math.random() * lanes.length)];
-            obstacle.position.y = 1;
-            obstacle.position.z = -120;
+            obstacle.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -120);
             scene.add(obstacle);
             obstacles.push(obstacle);
+        }
+
+        function spawnPackage() {
+            const geo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xCD853F }); // Kardus Coklat
+            const pkg = new THREE.Mesh(geo, mat);
+            pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -120);
+            scene.add(pkg);
+            packages.push(pkg);
         }
 
         let frameCount = 0;
@@ -134,48 +152,59 @@
         function animate() {
             if (isGameOver) return;
             requestAnimationFrame(animate);
-
             const delta = clock.getDelta();
             
-            // Update Animasi glTF jika model sudah dimuat
             if (mixer) mixer.update(delta);
-
-            // Pergerakan Player Model
             if (playerModel) {
                 playerModel.position.x += (playerTargetX - playerModel.position.x) * 0.15;
             }
 
             frameCount++;
             if (frameCount % 10 === 0) spawnScenery();
-            if (frameCount % 50 === 0) spawnObstacle();
+            
+            // Atur agar rintangan dan paket tidak spawn bersamaan di frame yang sama
+            if (frameCount % 60 === 0) spawnObstacle();
+            if (frameCount % 100 === 0) spawnPackage();
 
             // Gerakkan Scenery
             for (let i = scenery.length - 1; i >= 0; i--) {
                 scenery[i].position.z += speed;
-                if (scenery[i].position.z > 20) {
-                    scene.remove(scenery[i]);
-                    scenery.splice(i, 1);
-                }
+                if (scenery[i].position.z > 20) { scene.remove(scenery[i]); scenery.splice(i, 1); }
             }
 
-            // Gerakkan Rintangan & Deteksi Tabrakan
+            // Gerakkan Paket (Collectible)
+            for (let i = packages.length - 1; i >= 0; i--) {
+                let pkg = packages[i];
+                pkg.position.z += speed;
+                pkg.rotation.x += 0.05; // Animasi paket berputar
+                pkg.rotation.y += 0.05;
+
+                if (playerModel) {
+                    if (Math.abs(pkg.position.z - playerModel.position.z) < 2 && Math.abs(pkg.position.x - playerModel.position.x) < 2) {
+                        // Paket Diambil
+                        packageScore++;
+                        score += 500; // Poin bonus
+                        document.getElementById('package-count').innerText = packageScore;
+                        scene.remove(pkg);
+                        packages.splice(i, 1);
+                        continue;
+                    }
+                }
+                if (pkg.position.z > 20) { scene.remove(pkg); packages.splice(i, 1); }
+            }
+
+            // Gerakkan Rintangan (Mobil)
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.position.z += speed;
 
                 if (playerModel) {
-                    const distZ = Math.abs(obs.position.z - playerModel.position.z);
-                    const distX = Math.abs(obs.position.x - playerModel.position.x);
-                    if (distZ < 3 && distX < 2) {
+                    if (Math.abs(obs.position.z - playerModel.position.z) < 3 && Math.abs(obs.position.x - playerModel.position.x) < 2) {
                         isGameOver = true;
-                        alert("Crash! Skor Akhir: " + Math.floor(score / 10));
+                        alert("Nabrak! Total Paket: " + packageScore + "\nRefresh halaman untuk main lagi.");
                     }
                 }
-
-                if (obs.position.z > 20) {
-                    scene.remove(obs);
-                    obstacles.splice(i, 1);
-                }
+                if (obs.position.z > 20) { scene.remove(obs); obstacles.splice(i, 1); }
             }
 
             score += 1;
@@ -184,7 +213,6 @@
 
             renderer.render(scene, camera);
         }
-
         animate();
     </script>
 </body>

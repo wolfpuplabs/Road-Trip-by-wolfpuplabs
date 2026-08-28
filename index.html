@@ -67,7 +67,7 @@
 
     <div id="start-screen">
         <h1 style="color:#FFC107; font-size: 55px; text-shadow: 4px 4px 0 #fff; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FF9800;">Perfect Vibe</span></h1>
-        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Rider Is Back & Perfect Biomes!</p>
+        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Fixed Rider Culling & Biomes!</p>
         
         <div id="loading-container"><div id="loading-bar"></div></div>
         <div id="loading-text">Memuat Dunia Magis... 0%</div>
@@ -102,12 +102,12 @@
     
     <script>
         // ==========================================
-        // 0. OFFLINE CACHE SYSTEM
+        // 0. OFFLINE CACHE SYSTEM (Di-update agar force refresh)
         // ==========================================
         async function setupOfflineCache() {
             if ('caches' in window) {
                 try {
-                    const cache = await caches.open('road-trip-assets-v6');
+                    const cache = await caches.open('road-trip-assets-v7');
                     const urlsToCache = [
                         'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
                         'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js',
@@ -207,7 +207,6 @@
         const scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0x5DADE2, 30, 160); 
         
-        // Kamera didekatkan agar proporsi player 1.1 terlihat mantap
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 3.5, 7); camera.lookAt(0, 1, -10);
         
@@ -242,21 +241,19 @@
         const starMesh = new THREE.Points(starsGeo, starsMat); scene.add(starMesh);
 
         // ==========================================
-        // 4. TERRAIN & OCEAN (Sesuai Skala Player 1.1)
+        // 4. TERRAIN & OCEAN
         // ==========================================
         const grassGroundMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x2E4F2A, flatShading: true, roughness: 0.9 }));
         const grassGround = new THREE.Mesh(new THREE.PlaneGeometry(240, 400, 1, 100), grassGroundMat);
         grassGround.rotation.x = -Math.PI / 2; grassGround.position.set(0, 0, 0); 
         grassGround.receiveShadow = true; scene.add(grassGround);
 
-        // Ocean Laut (Tersembunyi di awal)
         const oceanGeo = new THREE.PlaneGeometry(120, 400, 20, 100);
         const oceanSea = new THREE.Mesh(oceanGeo, applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x29B6F6, flatShading: true, roughness: 0.1, metalness: 0.5 })));
         oceanSea.rotation.x = -Math.PI / 2; 
         oceanSea.position.set(180, -0.6, 0); 
         scene.add(oceanSea);
 
-        // Jalanan dipersempit agar proporsi pas dengan Player 1.1
         const roadMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x3d3d3d, roughness: 0.8 }));
         const road = new THREE.Mesh(new THREE.PlaneGeometry(8, 400, 1, 100), roadMat);
         road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, 0); road.receiveShadow = true; scene.add(road);
@@ -295,16 +292,9 @@
             const snow = createMesh(new THREE.ConeGeometry(radius * 0.45, height * 0.4, 7), { color: 0xffffff, flatShading: true, roughness: 0.9 });
             snow.position.y = height * 0.8; group.add(snow);
             
-            // GUNUNG DIJAUHKAN KE X = 140 (100% AMAN DARI KAMERA)
             const posX = side * (Math.random() * 20 + 140);
             group.position.set(posX, -5, -260); 
             scene.add(group); mountains.push(group);
-        }
-
-        for(let i=0; i<6; i++) { 
-            spawnMountain(1); spawnMountain(-1); 
-            mountains[mountains.length-1].position.z = -260 + (i * 40);
-            mountains[mountains.length-2].position.z = -260 + (i * 40);
         }
 
         let clouds = [];
@@ -348,7 +338,12 @@
             const clump = new THREE.Group();
             const numTrees = Math.floor(Math.random() * 3) + 2; 
             for(let i=0; i<numTrees; i++) {
-                const tree = (currentBiome === 2 && side === 1) ? createPalmTree() : createTree('pine');
+                let tree;
+                // STRICT BIOME TREELINE
+                if (currentBiome === 0) tree = createTree('pine');
+                else if (currentBiome === 1) tree = createTree('round');
+                else tree = createPalmTree();
+
                 tree.position.set((Math.random()-0.5)*8, 0, (Math.random()-0.5)*8);
                 tree.scale.setScalar(0.8 + Math.random()*0.4);
                 clump.add(tree);
@@ -380,7 +375,7 @@
             group.userData = { isHouse: true, winMat: winMat }; return group;
         }
 
-        // KENDARAAN & HEWAN (Di-scale kecil merujuk pada Player 1.1)
+        // KENDARAAN & HEWAN 
         function createCar() {
             const group = new THREE.Group();
             const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047, 0x8e24aa];
@@ -403,7 +398,7 @@
                     group.add(wGroup); wheelGroups.push(wGroup);
                 }
             }
-            group.scale.setScalar(0.45); // Scale disesuaikan dengan player
+            group.scale.setScalar(0.45); 
             group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1, wheels: wheelGroups, lights: lightMats }; return group;
         }
 
@@ -463,17 +458,28 @@
         const loader = new THREE.GLTFLoader(manager);
         loader.load('Ngantor rider.glb', function(gltf) {
             playerModel = gltf.scene; 
-            
-            // SKALA DIKEMBALIKAN KE 1.1 AGAR RIDER MUNCUL UTUH! (JANGAN DIUBAH)
             playerModel.scale.set(1.1, 1.1, 1.1); 
             playerModel.rotation.y = Math.PI;
-            playerModel.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+            
+            // ANTI CULLING FIX: Memaksa semua part/tulang karakter agar selalu dirender
+            playerModel.traverse(n => { 
+                if (n.isMesh) { 
+                    n.castShadow = true; 
+                    n.receiveShadow = true; 
+                    n.frustumCulled = false; // INI FIX UNTUK RIDER YANG HILANG
+                } 
+            });
             playerGroup.add(playerModel);
+            
             try { const box = new THREE.Box3().setFromObject(playerModel); playerModel.position.y = -box.min.y + 0.02; } catch(e) { playerModel.position.y = 0; }
-            if (gltf.animations.length > 0) { mixer = new THREE.AnimationMixer(playerModel); mixer.clipAction(gltf.animations[0]).play(); }
+            
+            if (gltf.animations.length > 0) { 
+                mixer = new THREE.AnimationMixer(playerModel); 
+                // PLAY SEMUA ANIMASI (berjaga-jaga jika mesh rider dan motor dipisah animasinya)
+                gltf.animations.forEach(clip => mixer.clipAction(clip).play()); 
+            }
         });
 
-        // Lane positions disesuaikan dengan jalan lebih sempit
         function moveLeft() { if(playerTargetX > -2.5 && !isJumping) playerTargetX -= 2.5; }
         function moveRight() { if(playerTargetX < 2.5 && !isJumping) playerTargetX += 2.5; }
         window.addEventListener('keydown', (e) => { if(e.key==='ArrowLeft'||e.key==='a') moveLeft(); if(e.key==='ArrowRight'||e.key==='d') moveRight(); });
@@ -515,24 +521,24 @@
         function spawnDenseScenery(side, zOffset) {
             const rand = Math.random(); let obj;
             
-            // TRANSISI BIOMA
+            // LOGIKA BIOMA YANG BENAR
             if (currentBiome === 0) { 
-                // 1. Pegunungan
+                // Bioma 0: Pegunungan
                 if(rand < 0.75) obj = createTree('pine'); else if(rand < 0.9) obj = createLog(); else obj = createRock(); 
             } else if (currentBiome === 1) { 
-                // 2. Padang Rumput & Farm
+                // Bioma 1: Farm
                 if(side === -1 && rand < 0.15) obj = createVillageHouse(); else if(rand < 0.3) obj = createFence(); else if(rand < 0.5) obj = createFlower(); else if(rand < 0.7) obj = createTallGrass(); else obj = createTree('round');
             } else { 
-                // 3. Pantai
+                // Bioma 2: Pantai
                 if(side === 1) {
-                    if(rand < 0.4) obj = createUmbrella(); else obj = createPalmTree(); // Pasir Dekat Pantai (Kanan)
+                    if(rand < 0.4) obj = createUmbrella(); else obj = createPalmTree();
                 } else {
-                    if(rand < 0.2) obj = createVillageHouse(); else if(rand < 0.8) obj = createPalmTree(); else obj = createRock(); // Daratan Pasir (Kiri)
+                    if(rand < 0.2) obj = createVillageHouse(); else if(rand < 0.8) obj = createPalmTree(); else obj = createRock();
                 }
             }
             
             if(obj) { 
-                let offset = 6 + Math.random() * 8; // Default pinggir jalan
+                let offset = 6 + Math.random() * 8;
                 if (obj.userData.isHouse) offset = 12 + Math.random() * 4; 
                 if (obj.userData.isUmbrella) offset = 10 + Math.random() * 6;
                 
@@ -559,14 +565,14 @@
             }
             positions.needsUpdate = true;
 
-            // SISTEM BIOMA (Warna Tanah & Munculnya Pantai)
-            currentBiome = Math.floor(score / 2500) % 3;
-            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } 
-            else if (currentBiome === 1) { targetGroundColor.setHex(0x558B2F); } 
-            else { targetGroundColor.setHex(0xEED49F); } 
+            // TRANSISI BIOMA SETIAP SKOR 1500 (LEBIH CEPAT GANTI)
+            currentBiome = Math.floor(score / 1500) % 3;
+            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } // Hijau Gelap
+            else if (currentBiome === 1) { targetGroundColor.setHex(0x689F38); } // Hijau Terang (Rumput)
+            else { targetGroundColor.setHex(0xEED49F); } // Pasir
             grassGroundMat.color.lerp(targetGroundColor, 0.02); 
 
-            let targetOceanX = currentBiome === 2 ? 40 : 180; // Pantai hanya mendekat saat Bioma 2
+            let targetOceanX = currentBiome === 2 ? 40 : 180; 
             oceanSea.position.x += (targetOceanX - oceanSea.position.x) * 0.02;
 
             if (audioCtx && engineOsc) { const currentPitch = 40 + ((speed - 0.65) * 180); engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1); }
@@ -613,10 +619,14 @@
             camera.position.z = 7 + (speed - 0.65) * 5; 
             if (cameraShake > 0) { camera.position.y += (Math.random() - 0.5) * cameraShake; camera.position.x += (Math.random() - 0.5) * cameraShake; cameraShake *= 0.9; }
 
-            // SPAWNERS
+            // SPAWNERS GUNUNG (HANYA MUNCUL DI PEGUNUNGAN & KIRI PANTAI)
             if (frameCount % 45 === 0) { 
-                spawnMountain(-1); 
-                if (currentBiome !== 2) spawnMountain(1); // Gunung Kanan Tidak Muncul di Pantai
+                if (currentBiome === 0) {
+                    spawnMountain(1); spawnMountain(-1); 
+                } else if (currentBiome === 2) {
+                    spawnMountain(-1); // Hanya sisi kiri pada pantai
+                }
+                // Bioma 1 (Farm) TIDAK ADA GUNUNG
             }
             if (frameCount % 15 === 0) { spawnTreeline(1, 0); spawnTreeline(-1, 0); } 
             
@@ -629,6 +639,7 @@
                 let obj; const rand = Math.random(); if (rand < 0.6) obj = createCar(); else if (rand < 0.8) obj = createRamp(); else obj = createOil();
                 obj.position.set([-2.5, 0, 2.5][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
             }
+            // HEWAN HANYA MUNCUL DI FARM (BIOME 1)
             if (frameCount % 180 === 0 && currentBiome === 1) { 
                 let animal = Math.random() > 0.5 ? createCow() : createSheep(); let startSide = Math.random() > 0.5 ? 1 : -1; 
                 animal.position.set(startSide * 5, 0, -180); animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; animal.userData.speedX = startSide === 1 ? -0.04 : 0.04; scene.add(animal); obstacles.push(animal);

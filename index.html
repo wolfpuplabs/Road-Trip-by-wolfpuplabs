@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Road Trip - Cinematic Edition</title>
+    <title>Road Trip - Cinematic Dense Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap');
         
@@ -11,7 +11,7 @@
         body { 
             margin: 0; overflow: hidden; 
             font-family: 'Nunito', sans-serif; 
-            background-color: #89CFF0; 
+            background-color: #5DADE2; 
             user-select: none; -webkit-user-select: none; touch-action: manipulation; 
             width: 100vw; height: 100dvh;
         }
@@ -54,7 +54,6 @@
         #restart-btn { width: 100%; max-width: 100%; margin-top: 10px; background: linear-gradient(to bottom, #4fc3f7, #0288d1); box-shadow: 0 8px 0 #01579b, 0 15px 20px rgba(0,0,0,0.25); }
         #restart-btn:active { box-shadow: 0 0px 0 #01579b; transform: translateY(8px); }
 
-        /* Damage Flash Overlay */
         #damage-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, rgba(255,0,0,0.5) 100%); opacity: 0; z-index: 2500; pointer-events: none; transition: opacity 0.2s; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -69,8 +68,8 @@
     <div id="damage-flash"></div>
 
     <div id="start-screen">
-        <h1 style="color:#FFC107; font-size: 55px; text-shadow: 4px 4px 0 #fff; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FF9800;">Cinematic</span></h1>
-        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Offline Ready & Aesthetic Details!</p>
+        <h1 style="color:#FFC107; font-size: 55px; text-shadow: 4px 4px 0 #fff; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FF9800;">Rich Environment</span></h1>
+        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Dense Woods & Perfect Colors!</p>
         
         <div id="loading-container"><div id="loading-bar"></div></div>
         <div id="loading-text">Memuat Dunia Magis... 0%</div>
@@ -111,7 +110,7 @@
         async function setupOfflineCache() {
             if ('caches' in window) {
                 try {
-                    const cache = await caches.open('road-trip-assets-v2');
+                    const cache = await caches.open('road-trip-assets-v3');
                     const urlsToCache = [
                         'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
                         'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js',
@@ -153,38 +152,16 @@
             return material;
         }
 
-        // --- PROCEDURAL TEXTURES (CANVAS) ---
+        // PROCEDURAL TEXTURES (GLOW & COIN ONLY)
         function createGlowTexture(color1, color2, color3) {
             const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d'); const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
             gradient.addColorStop(0, color1); gradient.addColorStop(0.3, color2); gradient.addColorStop(1, color3);
             ctx.fillStyle = gradient; ctx.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(canvas);
         }
-        const sunGlowTex = createGlowTexture('rgba(255, 255, 255, 1)', 'rgba(255, 230, 150, 0.6)', 'rgba(255, 200, 100, 0)');
+        const sunGlowTex = createGlowTexture('rgba(255, 255, 255, 1)', 'rgba(255, 240, 180, 0.6)', 'rgba(255, 200, 100, 0)');
         const headlightTex = createGlowTexture('rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0)');
         
-        function createGodRayTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 256;
-            const ctx = canvas.getContext('2d'); const grad = ctx.createLinearGradient(0,0,0,256);
-            grad.addColorStop(0, 'rgba(255, 240, 200, 0.35)'); grad.addColorStop(1, 'rgba(255, 240, 200, 0)');
-            ctx.fillStyle = grad; ctx.fillRect(0,0,128,256); return new THREE.CanvasTexture(canvas);
-        }
-        const godRayTex = createGodRayTexture();
-
-        function createWallTexture() {
-            const c = document.createElement('canvas'); c.width = 256; c.height = 256; const ctx = c.getContext('2d');
-            ctx.fillStyle = '#fdfbf7'; ctx.fillRect(0,0,256,256); ctx.fillStyle = '#e0e0e0';
-            for(let y=0; y<256; y+=32) { ctx.fillRect(0, y, 256, 2); for(let x=0; x<256; x+=64) { ctx.fillRect(x + (y%64===0?0:32), y, 2, 32); } }
-            const tex = new THREE.CanvasTexture(c); tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(1.5, 1.5); return tex;
-        }
-        const houseWallTex = createWallTexture();
-
-        function createCarTexture(baseColor) {
-            const c = document.createElement('canvas'); c.width = 256; c.height = 256; const ctx = c.getContext('2d');
-            ctx.fillStyle = baseColor; ctx.fillRect(0,0,256,256); ctx.fillStyle = '#ffffff'; ctx.fillRect(100,0,56,256);
-            return new THREE.CanvasTexture(c);
-        }
-
         function createCoinTexture() {
             const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256; const ctx = canvas.getContext('2d');
             ctx.fillStyle = '#ffb300'; ctx.fillRect(0, 0, 256, 256);
@@ -233,10 +210,11 @@
         }
 
         // ==========================================
-        // 3. SCENE, CAMERA & AESTHETIC LIGHTING 
+        // 3. SCENE, CAMERA & LIGHTING (Punchy Colors)
         // ==========================================
         const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0x89CFF0, 30, 160); 
+        // Fog yang pas, tidak terlalu dekat tapi cukup untuk blending ujung map
+        scene.fog = new THREE.Fog(0x5DADE2, 40, 160); 
         
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5.5, 11); camera.lookAt(0, 1, -15);
@@ -245,19 +223,21 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95; 
+        renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; 
+        renderer.toneMappingExposure = 1.0; // Normal exposure agar warna pop-out
         document.body.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.45); scene.add(ambientLight);
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.45); scene.add(hemiLight);
+        // HemiLight dengan warna kebiruan tua untuk shadow yang kaya (tidak flat gray)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); scene.add(ambientLight);
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x405060, 0.45); scene.add(hemiLight);
         
-        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.0); 
+        const sunLight = new THREE.DirectionalLight(0xffeedd, 1.4); // Lebih terang dan warm
         sunLight.position.set(-45, 35, 10); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
         sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 180;
         sunLight.shadow.camera.left = -45; sunLight.shadow.camera.right = 45;
         sunLight.shadow.camera.top = 45; sunLight.shadow.camera.bottom = -40;
-        sunLight.shadow.bias = -0.0005; sunLight.shadow.normalBias = 0.05;
+        sunLight.shadow.bias = -0.0005; sunLight.shadow.normalBias = 0.02; // Mempertegas shadow
         scene.add(sunLight);
 
         // Volumetric Sun Fake
@@ -265,6 +245,7 @@
         const sunMesh = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), sunMat);
         scene.add(sunMesh);
 
+        // Stars
         const starsGeo = new THREE.BufferGeometry();
         const starsCount = 500; const posArray = new Float32Array(starsCount * 3);
         for(let i = 0; i < starsCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 400; }
@@ -274,25 +255,25 @@
         const starMesh = new THREE.Points(starsGeo, starsMat); scene.add(starMesh);
 
         // ==========================================
-        // 4. TERRAIN MULTI-BIOME
+        // 4. TERRAIN MULTI-BIOME (Richer Colors)
         // ==========================================
-        const grassGroundMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x2E4F2A, flatShading: true, roughness: 0.9 }));
+        const grassGroundMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x4CAF50, flatShading: true, roughness: 0.9 }));
         const grassGround = new THREE.Mesh(new THREE.PlaneGeometry(150, 400, 1, 100), grassGroundMat);
         grassGround.rotation.x = -Math.PI / 2; grassGround.position.set(-66, 0, 0); grassGround.receiveShadow = true; scene.add(grassGround);
 
-        const sandBeachMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xEED49F, flatShading: true, roughness: 1.0 }));
+        const sandBeachMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xE3C27C, flatShading: true, roughness: 1.0 }));
         const sandBeach = new THREE.Mesh(new THREE.PlaneGeometry(40, 400, 1, 100), sandBeachMat);
         sandBeach.rotation.x = -Math.PI / 2; sandBeach.position.set(28, -0.05, 0); sandBeach.receiveShadow = true; scene.add(sandBeach);
 
         const oceanGeo = new THREE.PlaneGeometry(100, 400, 20, 100);
-        const oceanSea = new THREE.Mesh(oceanGeo, applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x4fc3f7, flatShading: true, roughness: 0.1, metalness: 0.6 })));
+        const oceanSea = new THREE.Mesh(oceanGeo, applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x03A9F4, flatShading: true, roughness: 0.1, metalness: 0.2 })));
         oceanSea.rotation.x = -Math.PI / 2; oceanSea.position.set(98, -0.6, 0); scene.add(oceanSea);
 
         const roadMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x3d3d3d, roughness: 0.8 }));
         const road = new THREE.Mesh(new THREE.PlaneGeometry(12, 400, 1, 100), roadMat);
         road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, 0); road.receiveShadow = true; scene.add(road);
 
-        const curbMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xd9d9d9, roughness: 0.8 }));
+        const curbMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.8 }));
         for (let side of [-6.2, 6.2]) {
             const curb = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 400, 1, 1, 100), curbMat);
             curb.position.set(side, 0.1, 0); curb.receiveShadow = true; curb.castShadow = true; scene.add(curb);
@@ -308,7 +289,7 @@
         }
 
         // ==========================================
-        // 5. ENHANCED 3D MODEL GENERATORS (DETAILS)
+        // 5. ENHANCED 3D MODEL GENERATORS 
         // ==========================================
         function createMesh(geo, matOptions, isBasic = false) {
             const mat = isBasic ? new THREE.MeshBasicMaterial(matOptions) : new THREE.MeshStandardMaterial(matOptions);
@@ -318,47 +299,44 @@
         let mountains = [];
         function spawnMountain() {
             const group = new THREE.Group();
-            const height = Math.random() * 35 + 40; const radius = Math.random() * 25 + 30;
-            const base = createMesh(new THREE.ConeGeometry(radius, height, 6), { color: 0x338a3e, flatShading: true, roughness: 0.9 });
+            const height = Math.random() * 40 + 45; const radius = Math.random() * 25 + 35;
+            const base = createMesh(new THREE.ConeGeometry(radius, height, 6), { color: 0x2E7D32, flatShading: true, roughness: 0.9 });
             base.position.y = height / 2 - 2; base.castShadow = true; group.add(base);
             const snow = createMesh(new THREE.ConeGeometry(radius * 0.4, height * 0.4, 6), { color: 0xffffff, flatShading: true, roughness: 0.9 });
             snow.position.y = height * 0.8 - 2; group.add(snow);
-            group.position.set(-(Math.random() * 20 + 80), 0, -220); scene.add(group); mountains.push(group);
+            group.position.set(-(Math.random() * 15 + 85), 0, -220); scene.add(group); mountains.push(group);
         }
-        for(let i=0; i<6; i++) { spawnMountain(); mountains[i].position.z = -150 + (i * 30); }
+        for(let i=0; i<8; i++) { spawnMountain(); mountains[i].position.z = -150 + (i * 25); } // Mountains are denser too
 
         let clouds = [];
         function createCloud() {
             const cloudGroup = new THREE.Group();
             for (let i = 0; i < 4; i++) {
-                const mesh = createMesh(new THREE.DodecahedronGeometry(Math.random() * 2 + 1.5, 0), { color: 0xffffff, flatShading: true, emissive: 0x222222 });
+                const mesh = createMesh(new THREE.DodecahedronGeometry(Math.random() * 2 + 1.5, 0), { color: 0xffffff, flatShading: true, emissive: 0x111111 });
                 mesh.position.set(i * 1.5, Math.random() * 0.8, Math.random() * 0.8); cloudGroup.add(mesh);
             }
             cloudGroup.position.set((Math.random() > 0.5 ? 1 : -1) * (Math.random() * 40 + 10), Math.random() * 10 + 25, -180);
             scene.add(cloudGroup); clouds.push(cloudGroup);
         }
 
-        // CINEMATIC GOD RAYS (SUN SHAFTS)
-        function createGodRay() {
-            const mat = applyCurvedWorld(new THREE.MeshBasicMaterial({ map: godRayTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(15 + Math.random()*10, 45), mat);
-            mesh.position.y = 20; mesh.rotation.z = Math.PI / 6; // Angle of sunlight
-            mesh.userData = { isRay: true, mat: mat }; return mesh;
-        }
+        // DENSE ENVIRONMENT PROPS
+        const pineColors = [0x2E7D32, 0x388E3C, 0x1B5E20]; // Color variation for trees
+        const roundColors = [0x66BB6A, 0x4CAF50, 0x81C784];
 
-        // ENVIRONMENT DETAILS
         function createTree(type) {
             const group = new THREE.Group();
             const trunk = createMesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), { color: 0x4e342e, flatShading: true });
             trunk.position.y = 1; trunk.castShadow = true; trunk.receiveShadow = true; group.add(trunk);
             if (type === 'pine') {
                 let yPos = 2.2; let rad = 2.2;
+                let cHex = pineColors[Math.floor(Math.random()*pineColors.length)];
                 for(let i=0; i<3; i++) {
-                    const c = createMesh(new THREE.ConeGeometry(rad, 2.8, 6), { color: 0x1b5e20, flatShading: true });
+                    const c = createMesh(new THREE.ConeGeometry(rad, 2.8, 6), { color: cHex, flatShading: true });
                     c.position.y = yPos; c.rotation.y = Math.random(); c.castShadow = true; group.add(c); yPos += 1.3; rad -= 0.6;
                 }
             } else if (type === 'round') {
-                const top = createMesh(new THREE.IcosahedronGeometry(2.2, 0), { color: 0x66bb6a, flatShading: true });
+                let cHex = roundColors[Math.floor(Math.random()*roundColors.length)];
+                const top = createMesh(new THREE.IcosahedronGeometry(2.2, 0), { color: cHex, flatShading: true });
                 top.position.y = 3.5; top.castShadow = true; group.add(top);
             }
             return group;
@@ -381,7 +359,7 @@
         function createTallGrass() {
             const group = new THREE.Group();
             for(let i=0; i<6; i++) {
-                const blade = createMesh(new THREE.CylinderGeometry(0.05, 0.1, 1.5 + Math.random()), {color: 0x8bc34a, flatShading: true});
+                const blade = createMesh(new THREE.CylinderGeometry(0.05, 0.1, 1.5 + Math.random()), {color: 0x8BC34A, flatShading: true});
                 blade.position.set((Math.random()-0.5)*1.5, 0.75, (Math.random()-0.5)*1.5);
                 blade.rotation.x = (Math.random()-0.5)*0.5; blade.rotation.z = (Math.random()-0.5)*0.5; blade.castShadow = true; group.add(blade);
             }
@@ -421,29 +399,40 @@
             return group;
         }
 
-        // TEXTURED HOUSE
+        // FULLY GEOMETRIC HOUSE (NO CANVAS TEXTURE) - Crisp & Aesthetic
         function createVillageHouse() {
             const group = new THREE.Group();
+            // Foundation
             const baseFoundation = createMesh(new THREE.BoxGeometry(4.8, 0.4, 4.8), { color: 0x78909c, flatShading: true }); baseFoundation.position.y = 0.2; baseFoundation.receiveShadow = true; group.add(baseFoundation);
             
-            // Wall with Brick/Plank Texture
-            const wallMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ map: houseWallTex, roughness: 0.9 }));
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(4.4, 3.2, 4.4), wallMat); wall.position.y = 1.8; wall.castShadow = true; wall.receiveShadow = true; group.add(wall);
+            // Wall (Solid color, no failing canvas texture)
+            const wall = createMesh(new THREE.BoxGeometry(4.4, 3.2, 4.4), { color: 0xfffcf5, flatShading: true }); wall.position.y = 1.8; wall.castShadow = true; wall.receiveShadow = true; group.add(wall);
             
+            // Geometric Wood Pillars at Corners for details
+            const pillarGeo = new THREE.BoxGeometry(0.3, 3.2, 0.3);
+            for(let px of [-2.15, 2.15]) {
+                for(let pz of [-2.15, 2.15]) {
+                    const pillar = createMesh(pillarGeo, { color: 0x5D4037, flatShading: true });
+                    pillar.position.set(px, 1.8, pz); group.add(pillar);
+                }
+            }
+
+            // Roof
             const roofColor = [0xef5350, 0x42a5f5, 0xffa726, 0x66bb6a][Math.floor(Math.random()*4)];
             const roof = createMesh(new THREE.ConeGeometry(4.2, 2.6, 4), { color: roofColor, flatShading: true }); roof.rotation.y = Math.PI/4; roof.position.y = 4.7; roof.castShadow = true; group.add(roof);
             
-            // Door and Doorknob
+            // Door
             const doorFrame = createMesh(new THREE.BoxGeometry(1.4, 2.2, 0.2), { color: 0x5d4037 }); doorFrame.position.set(0, 1.2, 2.21); group.add(doorFrame);
             const knob = createMesh(new THREE.DodecahedronGeometry(0.1, 0), {color: 0xffeb3b}); knob.position.set(0.5, 1.1, 2.32); group.add(knob);
 
-            // Windows and Sills
+            // Windows
             const winMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xffecb3, emissive: 0x000000, metalness: 0.3, roughness: 0.2 }));
             const winL = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.1), winMat); winL.position.set(-1.2, 2.0, 2.22); group.add(winL);
             const sillL = createMesh(new THREE.BoxGeometry(1.2, 0.1, 0.2), {color: 0x5d4037}); sillL.position.set(-1.2, 1.45, 2.25); group.add(sillL);
             const winR = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.1), winMat); winR.position.set(1.2, 2.0, 2.22); group.add(winR);
             const sillR = createMesh(new THREE.BoxGeometry(1.2, 0.1, 0.2), {color: 0x5d4037}); sillR.position.set(1.2, 1.45, 2.25); group.add(sillR);
             
+            // Chimney
             const chimney = createMesh(new THREE.BoxGeometry(0.7, 2.2, 0.7), { color: 0x6d4c41, flatShading: true }); chimney.position.set(1.2, 4.8, 1.2); chimney.castShadow = true; group.add(chimney);
 
             group.userData = { isHouse: true, winMat: winMat }; return group;
@@ -467,74 +456,33 @@
             group.userData = { isLight: true, bulbMat: bulbMat, glowMat: groundGlowMat }; return group;
         }
 
-        // DETAILED ANIMALS
-        function createCow() {
-            const group = new THREE.Group();
-            const body = createMesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), {color: 0xffffff, flatShading: true}); body.position.y = 1.2; body.castShadow = true; group.add(body);
-            const spot = createMesh(new THREE.BoxGeometry(1.55, 0.8, 0.8), {color: 0x222222, flatShading: true}); spot.position.set(0, 1.2, 0.2); group.add(spot);
-            const head = createMesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), {color: 0xffffff, flatShading: true}); head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head);
-            const snout = createMesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), {color: 0xf48fb1, flatShading: true}); snout.position.set(0, 1.6, 1.6); group.add(snout);
-            
-            // Eyes & Ears & Tail (Details)
-            const eyeL = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0x111111}); eyeL.position.set(-0.3, 1.9, 1.7); group.add(eyeL);
-            const eyeR = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0x111111}); eyeR.position.set(0.3, 1.9, 1.7); group.add(eyeR);
-            const earL = createMesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), {color: 0xffffff}); earL.position.set(-0.55, 1.9, 1.2); group.add(earL);
-            const earR = createMesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), {color: 0xffffff}); earR.position.set(0.55, 1.9, 1.2); group.add(earR);
-            const tail = createMesh(new THREE.BoxGeometry(0.1, 0.8, 0.1), {color: 0x222222}); tail.position.set(0, 1.2, -1.15); tail.rotation.x = -0.2; group.add(tail);
-
-            const horn1 = createMesh(new THREE.BoxGeometry(0.15, 0.35, 0.15), {color: 0xffe0b2}); horn1.position.set(-0.35, 2.4, 1.1); group.add(horn1);
-            const horn2 = createMesh(new THREE.BoxGeometry(0.15, 0.35, 0.15), {color: 0xffe0b2}); horn2.position.set(0.35, 2.4, 1.1); group.add(horn2);
-
-            for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) {
-                const leg = createMesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), {color: 0x222222, flatShading: true}); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
-            }
-            group.userData = { type: 'animal' }; return group;
-        }
-
-        function createSheep() {
-            const group = new THREE.Group();
-            const wool1 = createMesh(new THREE.DodecahedronGeometry(0.9, 0), {color: 0xf5f5f5, flatShading: true}); wool1.position.set(0, 1.1, 0); wool1.castShadow = true; group.add(wool1);
-            const wool2 = createMesh(new THREE.DodecahedronGeometry(0.7, 0), {color: 0xf5f5f5, flatShading: true}); wool2.position.set(0, 1.1, -0.6); wool2.castShadow = true; group.add(wool2);
-            
-            const head = createMesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), {color: 0x3e2723, flatShading: true}); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head);
-            const eyeL = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0xffffff}); eyeL.position.set(-0.2, 1.5, 1.15); group.add(eyeL);
-            const eyeR = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0xffffff}); eyeR.position.set(0.2, 1.5, 1.15); group.add(eyeR);
-            const earL = createMesh(new THREE.BoxGeometry(0.25, 0.1, 0.1), {color: 0x3e2723}); earL.position.set(-0.4, 1.4, 0.8); group.add(earL);
-            const earR = createMesh(new THREE.BoxGeometry(0.25, 0.1, 0.1), {color: 0x3e2723}); earR.position.set(0.4, 1.4, 0.8); group.add(earR);
-
-            for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) {
-                const leg = createMesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), {color: 0x3e2723, flatShading: true}); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
-            }
-            group.userData = { type: 'animal' }; return group;
-        }
-
-        // TEXTURED CARS WITH GLOWING HEADLIGHTS
+        // CARS (Procedural stripes instead of Canvas for reliability)
         function createCar() {
             const group = new THREE.Group();
-            const colors = ['#e53935', '#1e88e5', '#fdd835', '#43a047', '#8e24aa'];
+            const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047, 0x8e24aa];
             const hexColor = colors[Math.floor(Math.random()*colors.length)];
-            const carTex = createCarTexture(hexColor);
-            const bodyMat = applyCurvedWorld(new THREE.MeshStandardMaterial({map: carTex, roughness: 0.3, metalness: 0.2}));
+            const bodyMat = {color: hexColor, flatShading: true, roughness: 0.6};
             
-            const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 4.4), bodyMat); body.position.set(0, 0.7, 0); body.castShadow = true; group.add(body);
-            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), bodyMat); cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
+            const body = createMesh(new THREE.BoxGeometry(2.2, 0.8, 4.4), bodyMat); body.position.set(0, 0.7, 0); body.castShadow = true; group.add(body);
+            // Racing stripe geometry
+            const stripe = createMesh(new THREE.BoxGeometry(0.6, 0.82, 4.42), {color: 0xffffff, flatShading: true}); stripe.position.set(0, 0.7, 0); group.add(stripe);
+            
+            const cabin = createMesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), bodyMat); cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
             const glass = createMesh(new THREE.BoxGeometry(1.65, 0.5, 2.45), {color: 0x111122, roughness: 0.1, metalness: 0.8}); glass.position.set(0, 1.4, -0.2); group.add(glass);
             
             const grill = createMesh(new THREE.BoxGeometry(1.2, 0.3, 0.1), {color: 0x111111}); grill.position.set(0, 0.6, -2.21); group.add(grill);
             const brakeMat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: 0xff0000}));
             for(let x of [-0.8, 0.8]) { const tl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), brakeMat); tl.position.set(x, 0.8, 2.21); group.add(tl); }
-            const mirrorL = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), {color: hexColor}); mirrorL.position.set(-1.0, 1.1, -1.0); group.add(mirrorL);
-            const mirrorR = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), {color: hexColor}); mirrorR.position.set(1.0, 1.1, -1.0); group.add(mirrorR);
+            const mirrorL = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), bodyMat); mirrorL.position.set(-1.0, 1.1, -1.0); group.add(mirrorL);
+            const mirrorR = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), bodyMat); mirrorR.position.set(1.0, 1.1, -1.0); group.add(mirrorR);
 
-            // Headlights & Volumetric Cones
+            // Headlights & Cones
             let lightMats = [];
             const hlMat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: 0xffffff}));
             for(let x of [-0.8, 0.8]) { 
                 const hl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), hlMat); hl.position.set(x, 0.7, -2.21); group.add(hl); 
-                // Volumetric Cone
                 const coneMat = applyCurvedWorld(new THREE.MeshBasicMaterial({ map: headlightTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-                const cone = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 6), coneMat);
-                cone.rotation.x = Math.PI / 2; cone.position.set(x, 0.4, -5); group.add(cone);
+                const cone = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 6), coneMat); cone.rotation.x = Math.PI / 2; cone.position.set(x, 0.4, -5); group.add(cone);
                 lightMats.push(coneMat);
             }
 
@@ -548,6 +496,41 @@
                 }
             }
             group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1, wheels: wheelGroups, lights: lightMats }; return group;
+        }
+
+        // ANIMALS
+        function createCow() {
+            const group = new THREE.Group();
+            const body = createMesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), {color: 0xffffff, flatShading: true}); body.position.y = 1.2; body.castShadow = true; group.add(body);
+            const spot = createMesh(new THREE.BoxGeometry(1.55, 0.8, 0.8), {color: 0x222222, flatShading: true}); spot.position.set(0, 1.2, 0.2); group.add(spot);
+            const head = createMesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), {color: 0xffffff, flatShading: true}); head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head);
+            const snout = createMesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), {color: 0xf48fb1, flatShading: true}); snout.position.set(0, 1.6, 1.6); group.add(snout);
+            const eyeL = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0x111111}); eyeL.position.set(-0.3, 1.9, 1.7); group.add(eyeL);
+            const eyeR = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0x111111}); eyeR.position.set(0.3, 1.9, 1.7); group.add(eyeR);
+            const earL = createMesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), {color: 0xffffff}); earL.position.set(-0.55, 1.9, 1.2); group.add(earL);
+            const earR = createMesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), {color: 0xffffff}); earR.position.set(0.55, 1.9, 1.2); group.add(earR);
+            const tail = createMesh(new THREE.BoxGeometry(0.1, 0.8, 0.1), {color: 0x222222}); tail.position.set(0, 1.2, -1.15); tail.rotation.x = -0.2; group.add(tail);
+            const horn1 = createMesh(new THREE.BoxGeometry(0.15, 0.35, 0.15), {color: 0xffe0b2}); horn1.position.set(-0.35, 2.4, 1.1); group.add(horn1);
+            const horn2 = createMesh(new THREE.BoxGeometry(0.15, 0.35, 0.15), {color: 0xffe0b2}); horn2.position.set(0.35, 2.4, 1.1); group.add(horn2);
+            for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) {
+                const leg = createMesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), {color: 0x222222, flatShading: true}); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
+            }
+            group.userData = { type: 'animal' }; return group;
+        }
+
+        function createSheep() {
+            const group = new THREE.Group();
+            const wool1 = createMesh(new THREE.DodecahedronGeometry(0.9, 0), {color: 0xf5f5f5, flatShading: true}); wool1.position.set(0, 1.1, 0); wool1.castShadow = true; group.add(wool1);
+            const wool2 = createMesh(new THREE.DodecahedronGeometry(0.7, 0), {color: 0xf5f5f5, flatShading: true}); wool2.position.set(0, 1.1, -0.6); wool2.castShadow = true; group.add(wool2);
+            const head = createMesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), {color: 0x3e2723, flatShading: true}); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head);
+            const eyeL = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0xffffff}); eyeL.position.set(-0.2, 1.5, 1.15); group.add(eyeL);
+            const eyeR = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0xffffff}); eyeR.position.set(0.2, 1.5, 1.15); group.add(eyeR);
+            const earL = createMesh(new THREE.BoxGeometry(0.25, 0.1, 0.1), {color: 0x3e2723}); earL.position.set(-0.4, 1.4, 0.8); group.add(earL);
+            const earR = createMesh(new THREE.BoxGeometry(0.25, 0.1, 0.1), {color: 0x3e2723}); earR.position.set(0.4, 1.4, 0.8); group.add(earR);
+            for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) {
+                const leg = createMesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), {color: 0x3e2723, flatShading: true}); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
+            }
+            group.userData = { type: 'animal' }; return group;
         }
 
         function createPackage() {
@@ -568,7 +551,6 @@
             group.userData={type:'oil'}; return group; 
         }
 
-        // TEXTURED COIN
         function createCoin() { 
             const coinMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ map: coinTex, color: 0xffffff, emissive: 0x221100, roughness: 0.2, metalness: 0.8 }));
             const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.15, 16), coinMat);
@@ -584,7 +566,7 @@
         let playerTargetX = 0; let isGameOver = false; let gameStarted = false; 
         
         let currentBiome = 0; 
-        const targetGroundColor = new THREE.Color(0x2E4F2A); 
+        const targetGroundColor = new THREE.Color(0x4CAF50); 
         let playerVelocityY = 0; let isJumping = false; const gravity = -0.015;
         let dayTime = Math.PI / 2; let isNight = false; let cameraShake = 0;
 
@@ -656,6 +638,24 @@
         const lerp = (a, b, t) => a + (b - a) * t; 
         let frameCount = 0;
 
+        // FUNGSI SPAWNER SUPER RAPAT (DENSE CLUSTERS)
+        function spawnDenseScenery(side, zOffset) {
+            const rand = Math.random(); let obj;
+            if (currentBiome === 0) { 
+                if(rand < 0.7) obj = createTree('pine'); else if(rand < 0.85) obj = createLog(); else obj = createRock(); 
+            } else if (currentBiome === 1) { 
+                if(rand < 0.08) obj = createVillageHouse(); // Rumah lebih jarang
+                else if(rand < 0.3) obj = createFence(); else if(rand < 0.5) obj = createFlower(); else if(rand < 0.7) obj = createTallGrass(); else obj = createTree('round');
+            } else { 
+                if(rand < 0.5) obj = createPalmTree(); else if(rand < 0.7) obj = createUmbrella(); else if(rand < 0.8) obj = createVillageHouse(); else obj = createRock();
+            }
+            if(obj) { 
+                // Posisi X diacak menjauh dari jalan agar membentuk cluster tebal
+                obj.position.set(side * (Math.random() * 12 + 7), 0, -180 + zOffset); 
+                obj.scale.setScalar(0.1); obj.userData.targetScale = 1; scene.add(obj); scenery.push(obj); 
+            }
+        }
+
         function animate() {
             if (isGameOver || !gameStarted) return;
             requestAnimationFrame(animate);
@@ -676,9 +676,9 @@
 
             // --- INFINITE BIOMES LOOP ---
             currentBiome = Math.floor(score / 2500) % 3;
-            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } // Hutan
+            if (currentBiome === 0) { targetGroundColor.setHex(0x388E3C); } // Hutan
             else if (currentBiome === 1) { targetGroundColor.setHex(0x7CB342); } // Pedesaan
-            else { targetGroundColor.setHex(0xEED49F); } // Pantai
+            else { targetGroundColor.setHex(0xE3C27C); } // Pantai
             grassGroundMat.color.lerp(targetGroundColor, 0.02); 
 
             if (audioCtx && engineOsc) {
@@ -693,14 +693,14 @@
             sunMesh.position.set(-45 * 3, sunY * 45 * 3, sunZ * 45 * 3);
             sunMesh.lookAt(camera.position);
 
-            const colorDay = new THREE.Color(0x89CFF0);   
+            const colorDay = new THREE.Color(0x5DADE2);   
             const colorSunrise = new THREE.Color(0xFFB7B2); 
             const colorSunset = new THREE.Color(0xFF9E80);  
             const colorNight = new THREE.Color(0x0F172A); 
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
-                skyColor.copy(colorDay); isNight = false; sunLight.intensity = 1.0; hemiLight.intensity = 0.45; ambientLight.intensity = 0.45; starsMat.opacity = 0; playerHeadLight.intensity = 0; playerAmbientLight.intensity = 0;
+                skyColor.copy(colorDay); isNight = false; sunLight.intensity = 1.4; hemiLight.intensity = 0.45; ambientLight.intensity = 0.35; starsMat.opacity = 0; playerHeadLight.intensity = 0; playerAmbientLight.intensity = 0;
                 sunMat.color.setHex(0xffffff); sunMat.opacity = 0.8;
             } else if (sunY < -0.3) {
                 skyColor.copy(colorNight); isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15; ambientLight.intensity = 0.15; starsMat.opacity = 1; playerHeadLight.intensity = 3.0; playerAmbientLight.intensity = 1.0;
@@ -710,7 +710,7 @@
                 const horizonColor = (sunZ < 0) ? colorSunset : colorSunrise;
                 if (t > 0.5) {
                     let f = (t - 0.5) * 2.0; skyColor.copy(horizonColor).lerp(colorDay, f);
-                    sunLight.intensity = lerp(0.4, 1.0, f); hemiLight.intensity = lerp(0.25, 0.45, f); ambientLight.intensity = lerp(0.2, 0.45, f); starsMat.opacity = lerp(0.5, 0, f);
+                    sunLight.intensity = lerp(0.4, 1.4, f); hemiLight.intensity = lerp(0.25, 0.45, f); ambientLight.intensity = lerp(0.2, 0.35, f); starsMat.opacity = lerp(0.5, 0, f);
                     sunMat.color.copy(horizonColor).lerp(new THREE.Color(0xffffff), f); sunMat.opacity = lerp(0.4, 0.8, f);
                 } else {
                     let f = t * 2.0; skyColor.copy(colorNight).lerp(horizonColor, f);
@@ -734,22 +734,17 @@
             camera.position.z = 11 + (speed - 0.65) * 10; 
             if (cameraShake > 0) { camera.position.y += (Math.random() - 0.5) * cameraShake; camera.position.x += (Math.random() - 0.5) * cameraShake; cameraShake *= 0.9; }
 
-            // --- DETAILED SCENERY SPAWNERS ---
-            if (frameCount % 60 === 0 && currentBiome === 0) spawnMountain(); 
-            if (frameCount % 10 === 0) {
-                const side = Math.random() > 0.5 ? 1 : -1; const rand = Math.random(); let obj;
-                if (currentBiome === 0) { 
-                    if(rand < 0.5) obj = createTree('pine'); else if(rand < 0.65) obj = createLog(); else if(rand < 0.8) obj = createGodRay(); else obj = createRock(); 
-                } else if (currentBiome === 1) { 
-                    if(side === -1 && rand < 0.2) obj = createVillageHouse(); 
-                    else if(rand < 0.4) obj = createFence(); else if(rand < 0.6) obj = createFlower(); else if(rand < 0.8) obj = createTallGrass(); else obj = createTree('round');
-                } else { 
-                    if(side === 1 && rand < 0.5) obj = createPalmTree(); 
-                    else if(side === 1 && rand < 0.8) obj = createUmbrella(); else if(side === -1 && rand < 0.3) obj = createVillageHouse(); else obj = createRock();
-                }
-                if(obj) { obj.position.set(side * (Math.random() * 8 + 8), 0, -180); obj.scale.setScalar(0.1); obj.userData.targetScale = 1; scene.add(obj); scenery.push(obj); }
+            // --- DENSE SCENERY SPAWNERS ---
+            // Spawn di kiri & kanan secara bersamaan (Clustering tebal)
+            if (frameCount % 4 === 0) {
+                spawnDenseScenery(-1, 0); // Kiri
+                if(Math.random() > 0.5) spawnDenseScenery(-1, -3); // Kiri ekstra tebal
+                
+                spawnDenseScenery(1, 0); // Kanan
+                if(Math.random() > 0.5) spawnDenseScenery(1, -3); // Kanan ekstra tebal
             }
-            if (frameCount % 45 === 0) createCloud();
+
+            if (frameCount % 30 === 0) createCloud();
             if (frameCount % 60 === 0) {
                 const lightSide = Math.random() > 0.5 ? 1 : -1;
                 const sLight = createStreetLight(lightSide); sLight.position.set(lightSide * 7.5, 0, -180);
@@ -791,21 +786,12 @@
                 p.scale.setScalar(p.userData.life * 0.2); p.material.opacity = p.userData.life; p.userData.life -= 0.03;
                 if (p.userData.life <= 0) { scene.remove(p); smokeParticles.splice(i, 1); }
             }
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i]; p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
-                p.scale.setScalar(p.userData.life * 0.3); p.userData.life -= 0.05;
-                if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
-            }
-
             for (let i = mountains.length - 1; i >= 0; i--) { mountains[i].position.z += speed * 0.15; if (mountains[i].position.z > 50) { scene.remove(mountains[i]); mountains.splice(i, 1); } }
             for (let i = clouds.length - 1; i >= 0; i--) { clouds[i].position.z += speed * 0.4; if (clouds[i].position.z > 30) { scene.remove(clouds[i]); clouds.splice(i, 1); } }
             
             for (let i = scenery.length - 1; i >= 0; i--) {
                 let obj = scenery[i]; obj.position.z += speed;
                 if (obj.scale.x < obj.userData.targetScale) obj.scale.addScalar(0.08); 
-                
-                // Animasi God Rays
-                if (obj.userData.isRay) { obj.userData.mat.opacity = (isNight) ? 0 : lerp(0, 0.4, sunY); }
                 
                 if (obj.userData.isHouse) {
                     if (isNight) { obj.userData.winMat.emissive.setHex(0xffeb3b); obj.userData.winMat.emissiveIntensity = 0.8; } else { obj.userData.winMat.emissive.setHex(0x000000); }
@@ -846,7 +832,7 @@
                 
                 if (obs.userData.type === 'car') {
                     obs.position.z += obs.userData.driveSpeed; obs.userData.wheels.forEach(w => w.rotation.x -= 0.15); 
-                    obs.userData.lights.forEach(hl => hl.opacity = isNight ? 0.6 : 0); // Turn on headlights at night
+                    obs.userData.lights.forEach(hl => hl.opacity = isNight ? 0.6 : 0);
                 } else if (obs.userData.type === 'animal') {
                     obs.position.x += obs.userData.speedX; obs.position.y = Math.abs(Math.sin(frameCount * 0.2)) * 0.5;
                 }

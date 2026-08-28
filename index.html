@@ -76,7 +76,6 @@
         <button id="start-btn">RIDE NOW</button>
     </div>
 
-    <!-- Custom Game Over Screen -->
     <div id="game-over-screen">
         <div class="modal-card">
             <h2>💥 CRASH!</h2>
@@ -152,7 +151,6 @@
             return material;
         }
 
-        // PROCEDURAL TEXTURES
         function createGlowTexture(color1, color2, color3) {
             const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d'); const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
@@ -213,7 +211,7 @@
         // 3. SCENE, CAMERA & LIGHTING 
         // ==========================================
         const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0x5DADE2, 40, 160); 
+        scene.fog = new THREE.Fog(0x5DADE2, 50, 180); // Fog disesuaikan agar gunung terlihat lebih clear
         
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5.5, 11); camera.lookAt(0, 1, -15);
@@ -226,17 +224,16 @@
         renderer.toneMappingExposure = 1.0; 
         document.body.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); scene.add(ambientLight);
-        // Hemilight memberikan shadow kebiruan yang kontras & tidak flat
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x405060, 0.45); scene.add(hemiLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); scene.add(ambientLight);
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x405060, 0.5); scene.add(hemiLight);
         
         const sunLight = new THREE.DirectionalLight(0xffeedd, 1.4); 
-        sunLight.position.set(-45, 35, 10); sunLight.castShadow = true;
+        sunLight.position.set(-45, 45, 10); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
         sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 180;
-        sunLight.shadow.camera.left = -45; sunLight.shadow.camera.right = 45;
-        sunLight.shadow.camera.top = 45; sunLight.shadow.camera.bottom = -40;
-        sunLight.shadow.bias = -0.0005; sunLight.shadow.normalBias = 0.02;
+        sunLight.shadow.camera.left = -50; sunLight.shadow.camera.right = 50;
+        sunLight.shadow.camera.top = 50; sunLight.shadow.camera.bottom = -50;
+        sunLight.shadow.bias = -0.0005; 
         scene.add(sunLight);
 
         const sunMat = new THREE.MeshBasicMaterial({ map: sunGlowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
@@ -252,28 +249,21 @@
         const starMesh = new THREE.Points(starsGeo, starsMat); scene.add(starMesh);
 
         // ==========================================
-        // 4. TERRAIN MULTI-BIOME (Beach is Closer!)
+        // 4. TERRAIN MULTI-BIOME
         // ==========================================
-        // Daratan utama (Rumput/Tanah)
         const grassGroundMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x2E4F2A, flatShading: true, roughness: 0.9 }));
         const grassGround = new THREE.Mesh(new THREE.PlaneGeometry(160, 400, 1, 100), grassGroundMat);
-        grassGround.rotation.x = -Math.PI / 2; 
-        grassGround.position.set(-60, 0, 0); // Membentang dari kiri ujung hingga tepi pantai
+        grassGround.rotation.x = -Math.PI / 2; grassGround.position.set(-60, 0, 0); 
         grassGround.receiveShadow = true; scene.add(grassGround);
 
-        // Pasir Pantai (Lebih dekat ke jalan, mulai dari x = 20)
         const sandBeachMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xEED49F, flatShading: true, roughness: 1.0 }));
         const sandBeach = new THREE.Mesh(new THREE.PlaneGeometry(30, 400, 1, 100), sandBeachMat);
-        sandBeach.rotation.x = -Math.PI / 2; 
-        sandBeach.position.set(35, -0.05, 0); 
+        sandBeach.rotation.x = -Math.PI / 2; sandBeach.position.set(35, -0.05, 0); 
         sandBeach.receiveShadow = true; scene.add(sandBeach);
 
-        // Lautan (Lebih dekat ke jalan, mulai dari x = 50)
         const oceanGeo = new THREE.PlaneGeometry(120, 400, 20, 100);
         const oceanSea = new THREE.Mesh(oceanGeo, applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x29B6F6, flatShading: true, roughness: 0.1, metalness: 0.5 })));
-        oceanSea.rotation.x = -Math.PI / 2; 
-        oceanSea.position.set(110, -0.6, 0); 
-        scene.add(oceanSea);
+        oceanSea.rotation.x = -Math.PI / 2; oceanSea.position.set(110, -0.6, 0); scene.add(oceanSea);
 
         const roadMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x3d3d3d, roughness: 0.8 }));
         const road = new THREE.Mesh(new THREE.PlaneGeometry(12, 400, 1, 100), roadMat);
@@ -303,18 +293,25 @@
         }
 
         let mountains = [];
-        function spawnMountain() {
+        function spawnMountain(side) {
             const group = new THREE.Group();
-            const height = Math.random() * 40 + 45; const radius = Math.random() * 25 + 35;
-            const base = createMesh(new THREE.ConeGeometry(radius, height, 6), { color: 0x2E7D32, flatShading: true, roughness: 0.9 });
+            const height = Math.random() * 50 + 60; const radius = Math.random() * 35 + 40;
+            const base = createMesh(new THREE.ConeGeometry(radius, height, 7), { color: 0x2E7D32, flatShading: true, roughness: 0.9 });
             base.position.y = height / 2 - 2; base.castShadow = true; group.add(base);
-            const snow = createMesh(new THREE.ConeGeometry(radius * 0.4, height * 0.4, 6), { color: 0xffffff, flatShading: true, roughness: 0.9 });
+            const snow = createMesh(new THREE.ConeGeometry(radius * 0.45, height * 0.4, 7), { color: 0xffffff, flatShading: true, roughness: 0.9 });
             snow.position.y = height * 0.8 - 2; group.add(snow);
-            group.position.set(-(Math.random() * 30 + 60), 0, -220); // Posisi selalu di belakang aman
+            
+            // SPAWN JAUH DI LUAR PETA (X = 65 hingga 100) -> Aman tidak tabrak rumah
+            const posX = side * (Math.random() * 35 + 65);
+            group.position.set(posX, 0, -260); 
             scene.add(group); mountains.push(group);
         }
-        // Pra-generate gunung agar langsung terisi penuh di layar
-        for(let i=0; i<10; i++) { spawnMountain(); mountains[i].position.z = -220 + (i * 25); }
+        // Pra-generate gunung kiri kanan
+        for(let i=0; i<8; i++) { 
+            spawnMountain(1); spawnMountain(-1); 
+            mountains[mountains.length-1].position.z = -260 + (i * 35);
+            mountains[mountains.length-2].position.z = -260 + (i * 35);
+        }
 
         let clouds = [];
         function createCloud() {
@@ -327,7 +324,7 @@
             scene.add(cloudGroup); clouds.push(cloudGroup);
         }
 
-        // Variasi Pohon & Objek Lingkungan
+        // Variasi Pohon
         const pineColors = [0x2E7D32, 0x388E3C, 0x1B5E20];
         const roundColors = [0x66BB6A, 0x4CAF50, 0x81C784];
 
@@ -336,59 +333,16 @@
             const trunk = createMesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), { color: 0x4e342e, flatShading: true });
             trunk.position.y = 1; trunk.castShadow = true; trunk.receiveShadow = true; group.add(trunk);
             if (type === 'pine') {
-                let yPos = 2.2; let rad = 2.2; let cHex = pineColors[Math.floor(Math.random()*pineColors.length)];
+                let yPos = 2.2; let rad = 2.4; let cHex = pineColors[Math.floor(Math.random()*pineColors.length)];
                 for(let i=0; i<3; i++) {
                     const c = createMesh(new THREE.ConeGeometry(rad, 2.8, 6), { color: cHex, flatShading: true });
                     c.position.y = yPos; c.rotation.y = Math.random(); c.castShadow = true; group.add(c); yPos += 1.3; rad -= 0.6;
                 }
             } else if (type === 'round') {
                 let cHex = roundColors[Math.floor(Math.random()*roundColors.length)];
-                const top = createMesh(new THREE.IcosahedronGeometry(2.2, 0), { color: cHex, flatShading: true });
+                const top = createMesh(new THREE.IcosahedronGeometry(2.4, 0), { color: cHex, flatShading: true });
                 top.position.y = 3.5; top.castShadow = true; group.add(top);
             }
-            return group;
-        }
-
-        function createLog() {
-            const log = createMesh(new THREE.CylinderGeometry(0.4, 0.4, 3, 6), { color: 0x5d4037, flatShading: true });
-            log.rotation.z = Math.PI/2; log.rotation.y = Math.random(); log.position.y = 0.2; log.castShadow = true; return log;
-        }
-
-        function createFence() {
-            const group = new THREE.Group();
-            const post1 = createMesh(new THREE.BoxGeometry(0.2, 1.5, 0.2), { color: 0x8d6e63 }); post1.position.set(-1.5, 0.75, 0); post1.castShadow=true; group.add(post1);
-            const post2 = createMesh(new THREE.BoxGeometry(0.2, 1.5, 0.2), { color: 0x8d6e63 }); post2.position.set(1.5, 0.75, 0); post2.castShadow=true; group.add(post2);
-            const plank1 = createMesh(new THREE.BoxGeometry(3.4, 0.2, 0.1), { color: 0x8d6e63 }); plank1.position.set(0, 1.0, 0); plank1.castShadow=true; group.add(plank1);
-            const plank2 = createMesh(new THREE.BoxGeometry(3.4, 0.2, 0.1), { color: 0x8d6e63 }); plank2.position.set(0, 0.5, 0); plank2.castShadow=true; group.add(plank2);
-            return group;
-        }
-
-        function createTallGrass() {
-            const group = new THREE.Group();
-            for(let i=0; i<6; i++) {
-                const blade = createMesh(new THREE.CylinderGeometry(0.05, 0.1, 1.5 + Math.random()), {color: 0x8BC34A, flatShading: true});
-                blade.position.set((Math.random()-0.5)*1.5, 0.75, (Math.random()-0.5)*1.5);
-                blade.rotation.x = (Math.random()-0.5)*0.5; blade.rotation.z = (Math.random()-0.5)*0.5; blade.castShadow = true; group.add(blade);
-            }
-            return group;
-        }
-
-        function createUmbrella() {
-            const group = new THREE.Group();
-            const pole = createMesh(new THREE.CylinderGeometry(0.08, 0.08, 4, 8), { color: 0xeeeeee }); pole.position.y = 2; pole.castShadow = true; group.add(pole);
-            const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047];
-            const top = createMesh(new THREE.ConeGeometry(2.5, 1, 8), { color: colors[Math.floor(Math.random()*colors.length)], flatShading: true }); 
-            top.position.y = 4; top.castShadow = true; group.add(top);
-            group.userData = { isUmbrella: true }; // Flag khusus untuk umbrella
-            return group;
-        }
-
-        function createFlower() {
-            const group = new THREE.Group();
-            const stem = createMesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 4), { color: 0x4caf50, flatShading: true }); stem.position.y = 0.3; group.add(stem);
-            const colors = [0xffeb3b, 0xf48fb1, 0xce93d8, 0x81d4fa, 0xffb74d];
-            const petal = createMesh(new THREE.DodecahedronGeometry(0.25, 0), { color: colors[Math.floor(Math.random()*colors.length)], flatShading: true });
-            petal.position.y = 0.7; petal.castShadow = true; group.add(petal);
             return group;
         }
 
@@ -407,34 +361,45 @@
             return group;
         }
 
-        // FULLY GEOMETRIC HOUSE (NO CANVAS TEXTURE)
+        // HUTAN PEMBATAS (TREELINE) - Clumping Effect
+        function spawnTreeline(side, zOffset) {
+            const clump = new THREE.Group();
+            const numTrees = Math.floor(Math.random() * 3) + 2; 
+            for(let i=0; i<numTrees; i++) {
+                const tree = (currentBiome === 2 && side === 1) ? createPalmTree() : createTree('pine');
+                tree.position.set((Math.random()-0.5)*8, 0, (Math.random()-0.5)*8);
+                tree.scale.setScalar(0.8 + Math.random()*0.4);
+                clump.add(tree);
+            }
+            // Hutan ditaruh di antara rumah (25) dan Gunung (65) -> Zona (30 - 50)
+            const posX = side * (Math.random() * 20 + 30);
+            clump.position.set(posX, 0, -220 + zOffset);
+            clump.scale.setScalar(0.1); clump.userData.targetScale = 1;
+            scene.add(clump); scenery.push(clump);
+        }
+
+        function createLog() { const log = createMesh(new THREE.CylinderGeometry(0.4, 0.4, 3, 6), { color: 0x5d4037, flatShading: true }); log.rotation.z = Math.PI/2; log.rotation.y = Math.random(); log.position.y = 0.2; log.castShadow = true; return log; }
+        function createFence() { const group = new THREE.Group(); const post1 = createMesh(new THREE.BoxGeometry(0.2, 1.5, 0.2), { color: 0x8d6e63 }); post1.position.set(-1.5, 0.75, 0); post1.castShadow=true; group.add(post1); const post2 = createMesh(new THREE.BoxGeometry(0.2, 1.5, 0.2), { color: 0x8d6e63 }); post2.position.set(1.5, 0.75, 0); post2.castShadow=true; group.add(post2); const plank1 = createMesh(new THREE.BoxGeometry(3.4, 0.2, 0.1), { color: 0x8d6e63 }); plank1.position.set(0, 1.0, 0); plank1.castShadow=true; group.add(plank1); const plank2 = createMesh(new THREE.BoxGeometry(3.4, 0.2, 0.1), { color: 0x8d6e63 }); plank2.position.set(0, 0.5, 0); plank2.castShadow=true; group.add(plank2); return group; }
+        function createTallGrass() { const group = new THREE.Group(); for(let i=0; i<6; i++) { const blade = createMesh(new THREE.CylinderGeometry(0.05, 0.1, 1.5 + Math.random()), {color: 0x8BC34A, flatShading: true}); blade.position.set((Math.random()-0.5)*1.5, 0.75, (Math.random()-0.5)*1.5); blade.rotation.x = (Math.random()-0.5)*0.5; blade.rotation.z = (Math.random()-0.5)*0.5; blade.castShadow = true; group.add(blade); } return group; }
+        function createUmbrella() { const group = new THREE.Group(); const pole = createMesh(new THREE.CylinderGeometry(0.08, 0.08, 4, 8), { color: 0xeeeeee }); pole.position.y = 2; pole.castShadow = true; group.add(pole); const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047]; const top = createMesh(new THREE.ConeGeometry(2.5, 1, 8), { color: colors[Math.floor(Math.random()*colors.length)], flatShading: true }); top.position.y = 4; top.castShadow = true; group.add(top); group.userData = { isUmbrella: true }; return group; }
+        function createFlower() { const group = new THREE.Group(); const stem = createMesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 4), { color: 0x4caf50, flatShading: true }); stem.position.y = 0.3; group.add(stem); const colors = [0xffeb3b, 0xf48fb1, 0xce93d8, 0x81d4fa, 0xffb74d]; const petal = createMesh(new THREE.DodecahedronGeometry(0.25, 0), { color: colors[Math.floor(Math.random()*colors.length)], flatShading: true }); petal.position.y = 0.7; petal.castShadow = true; group.add(petal); return group; }
+
         function createVillageHouse() {
             const group = new THREE.Group();
             const baseFoundation = createMesh(new THREE.BoxGeometry(4.8, 0.4, 4.8), { color: 0x78909c, flatShading: true }); baseFoundation.position.y = 0.2; baseFoundation.receiveShadow = true; group.add(baseFoundation);
-            
             const wall = createMesh(new THREE.BoxGeometry(4.4, 3.2, 4.4), { color: 0xfffcf5, flatShading: true }); wall.position.y = 1.8; wall.castShadow = true; wall.receiveShadow = true; group.add(wall);
-            
             const pillarGeo = new THREE.BoxGeometry(0.3, 3.2, 0.3);
-            for(let px of [-2.15, 2.15]) {
-                for(let pz of [-2.15, 2.15]) {
-                    const pillar = createMesh(pillarGeo, { color: 0x5D4037, flatShading: true }); pillar.position.set(px, 1.8, pz); group.add(pillar);
-                }
-            }
-
+            for(let px of [-2.15, 2.15]) { for(let pz of [-2.15, 2.15]) { const pillar = createMesh(pillarGeo, { color: 0x5D4037, flatShading: true }); pillar.position.set(px, 1.8, pz); group.add(pillar); } }
             const roofColor = [0xef5350, 0x42a5f5, 0xffa726, 0x66bb6a][Math.floor(Math.random()*4)];
             const roof = createMesh(new THREE.ConeGeometry(4.2, 2.6, 4), { color: roofColor, flatShading: true }); roof.rotation.y = Math.PI/4; roof.position.y = 4.7; roof.castShadow = true; group.add(roof);
-            
             const doorFrame = createMesh(new THREE.BoxGeometry(1.4, 2.2, 0.2), { color: 0x5d4037 }); doorFrame.position.set(0, 1.2, 2.21); group.add(doorFrame);
             const knob = createMesh(new THREE.DodecahedronGeometry(0.1, 0), {color: 0xffeb3b}); knob.position.set(0.5, 1.1, 2.32); group.add(knob);
-
             const winMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xffecb3, emissive: 0x000000, metalness: 0.3, roughness: 0.2 }));
             const winL = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.1), winMat); winL.position.set(-1.2, 2.0, 2.22); group.add(winL);
             const sillL = createMesh(new THREE.BoxGeometry(1.2, 0.1, 0.2), {color: 0x5d4037}); sillL.position.set(-1.2, 1.45, 2.25); group.add(sillL);
             const winR = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.1), winMat); winR.position.set(1.2, 2.0, 2.22); group.add(winR);
             const sillR = createMesh(new THREE.BoxGeometry(1.2, 0.1, 0.2), {color: 0x5d4037}); sillR.position.set(1.2, 1.45, 2.25); group.add(sillR);
-            
             const chimney = createMesh(new THREE.BoxGeometry(0.7, 2.2, 0.7), { color: 0x6d4c41, flatShading: true }); chimney.position.set(1.2, 4.8, 1.2); chimney.castShadow = true; group.add(chimney);
-
             group.userData = { isHouse: true, winMat: winMat }; return group;
         }
 
@@ -456,34 +421,25 @@
             group.userData = { isLight: true, bulbMat: bulbMat, glowMat: groundGlowMat }; return group;
         }
 
-        // CARS
+        // CARS & ANIMALS (Obstacles)
         function createCar() {
             const group = new THREE.Group();
             const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047, 0x8e24aa];
             const hexColor = colors[Math.floor(Math.random()*colors.length)];
             const bodyMat = {color: hexColor, flatShading: true, roughness: 0.6};
-            
             const body = createMesh(new THREE.BoxGeometry(2.2, 0.8, 4.4), bodyMat); body.position.set(0, 0.7, 0); body.castShadow = true; group.add(body);
             const stripe = createMesh(new THREE.BoxGeometry(0.6, 0.82, 4.42), {color: 0xffffff, flatShading: true}); stripe.position.set(0, 0.7, 0); group.add(stripe);
-            
             const cabin = createMesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), bodyMat); cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
             const glass = createMesh(new THREE.BoxGeometry(1.65, 0.5, 2.45), {color: 0x111122, roughness: 0.1, metalness: 0.8}); glass.position.set(0, 1.4, -0.2); group.add(glass);
-            
             const grill = createMesh(new THREE.BoxGeometry(1.2, 0.3, 0.1), {color: 0x111111}); grill.position.set(0, 0.6, -2.21); group.add(grill);
             const brakeMat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: 0xff0000}));
             for(let x of [-0.8, 0.8]) { const tl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), brakeMat); tl.position.set(x, 0.8, 2.21); group.add(tl); }
-            const mirrorL = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), bodyMat); mirrorL.position.set(-1.0, 1.1, -1.0); group.add(mirrorL);
-            const mirrorR = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), bodyMat); mirrorR.position.set(1.0, 1.1, -1.0); group.add(mirrorR);
-
-            let lightMats = [];
-            const hlMat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: 0xffffff}));
+            let lightMats = []; const hlMat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: 0xffffff}));
             for(let x of [-0.8, 0.8]) { 
                 const hl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), hlMat); hl.position.set(x, 0.7, -2.21); group.add(hl); 
                 const coneMat = applyCurvedWorld(new THREE.MeshBasicMaterial({ map: headlightTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-                const cone = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 6), coneMat); cone.rotation.x = Math.PI / 2; cone.position.set(x, 0.4, -5); group.add(cone);
-                lightMats.push(coneMat);
+                const cone = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 6), coneMat); cone.rotation.x = Math.PI / 2; cone.position.set(x, 0.4, -5); group.add(cone); lightMats.push(coneMat);
             }
-
             let wheelGroups = [];
             for(let x of [-1.15, 1.15]) {
                 for(let z of [-1.3, 1.3]) {
@@ -496,40 +452,8 @@
             group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1, wheels: wheelGroups, lights: lightMats }; return group;
         }
 
-        // ANIMALS
-        function createCow() {
-            const group = new THREE.Group();
-            const body = createMesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), {color: 0xffffff, flatShading: true}); body.position.y = 1.2; body.castShadow = true; group.add(body);
-            const spot = createMesh(new THREE.BoxGeometry(1.55, 0.8, 0.8), {color: 0x222222, flatShading: true}); spot.position.set(0, 1.2, 0.2); group.add(spot);
-            const head = createMesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), {color: 0xffffff, flatShading: true}); head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head);
-            const snout = createMesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), {color: 0xf48fb1, flatShading: true}); snout.position.set(0, 1.6, 1.6); group.add(snout);
-            const eyeL = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0x111111}); eyeL.position.set(-0.3, 1.9, 1.7); group.add(eyeL);
-            const eyeR = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0x111111}); eyeR.position.set(0.3, 1.9, 1.7); group.add(eyeR);
-            const earL = createMesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), {color: 0xffffff}); earL.position.set(-0.55, 1.9, 1.2); group.add(earL);
-            const earR = createMesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), {color: 0xffffff}); earR.position.set(0.55, 1.9, 1.2); group.add(earR);
-            const tail = createMesh(new THREE.BoxGeometry(0.1, 0.8, 0.1), {color: 0x222222}); tail.position.set(0, 1.2, -1.15); tail.rotation.x = -0.2; group.add(tail);
-            const horn1 = createMesh(new THREE.BoxGeometry(0.15, 0.35, 0.15), {color: 0xffe0b2}); horn1.position.set(-0.35, 2.4, 1.1); group.add(horn1);
-            const horn2 = createMesh(new THREE.BoxGeometry(0.15, 0.35, 0.15), {color: 0xffe0b2}); horn2.position.set(0.35, 2.4, 1.1); group.add(horn2);
-            for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) {
-                const leg = createMesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), {color: 0x222222, flatShading: true}); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg);
-            }
-            group.userData = { type: 'animal' }; return group;
-        }
-
-        function createSheep() {
-            const group = new THREE.Group();
-            const wool1 = createMesh(new THREE.DodecahedronGeometry(0.9, 0), {color: 0xf5f5f5, flatShading: true}); wool1.position.set(0, 1.1, 0); wool1.castShadow = true; group.add(wool1);
-            const wool2 = createMesh(new THREE.DodecahedronGeometry(0.7, 0), {color: 0xf5f5f5, flatShading: true}); wool2.position.set(0, 1.1, -0.6); wool2.castShadow = true; group.add(wool2);
-            const head = createMesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), {color: 0x3e2723, flatShading: true}); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head);
-            const eyeL = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0xffffff}); eyeL.position.set(-0.2, 1.5, 1.15); group.add(eyeL);
-            const eyeR = createMesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), {color: 0xffffff}); eyeR.position.set(0.2, 1.5, 1.15); group.add(eyeR);
-            const earL = createMesh(new THREE.BoxGeometry(0.25, 0.1, 0.1), {color: 0x3e2723}); earL.position.set(-0.4, 1.4, 0.8); group.add(earL);
-            const earR = createMesh(new THREE.BoxGeometry(0.25, 0.1, 0.1), {color: 0x3e2723}); earR.position.set(0.4, 1.4, 0.8); group.add(earR);
-            for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) {
-                const leg = createMesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), {color: 0x3e2723, flatShading: true}); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg);
-            }
-            group.userData = { type: 'animal' }; return group;
-        }
+        function createCow() { const group = new THREE.Group(); const body = createMesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), {color: 0xffffff, flatShading: true}); body.position.y = 1.2; body.castShadow = true; group.add(body); const head = createMesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), {color: 0xffffff, flatShading: true}); head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head); for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) { const leg = createMesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), {color: 0x222222, flatShading: true}); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg); } group.userData = { type: 'animal' }; return group; }
+        function createSheep() { const group = new THREE.Group(); const wool1 = createMesh(new THREE.DodecahedronGeometry(0.9, 0), {color: 0xf5f5f5, flatShading: true}); wool1.position.set(0, 1.1, 0); wool1.castShadow = true; group.add(wool1); const head = createMesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), {color: 0x3e2723, flatShading: true}); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head); for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) { const leg = createMesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), {color: 0x3e2723, flatShading: true}); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg); } group.userData = { type: 'animal' }; return group; }
 
         function createPackage() {
             const group = new THREE.Group();
@@ -545,14 +469,15 @@
             const oilMat = {color: 0x111111, roughness: 0.05, metalness: 0.85};
             const base = createMesh(new THREE.CylinderGeometry(1.5, 1.5, 0.04, 12), oilMat); base.position.y=0.02; group.add(base);
             const blob1 = createMesh(new THREE.CylinderGeometry(0.8, 0.8, 0.04, 10), oilMat); blob1.position.set(1.0, 0.02, 0.6); group.add(blob1);
-            const blob2 = createMesh(new THREE.CylinderGeometry(0.6, 0.6, 0.04, 8), oilMat); blob2.position.set(-0.9, 0.02, -0.7); group.add(blob2);
             group.userData={type:'oil'}; return group; 
         }
 
+        // PERBAIKAN KOIN: Tegak menghadap kamera
         function createCoin() { 
-            const coinMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ map: coinTex, color: 0xffffff, emissive: 0x221100, roughness: 0.2, metalness: 0.8 }));
+            const coinMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ map: coinTex, color: 0xffffff, emissive: 0x442200, roughness: 0.2, metalness: 0.8 }));
             const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.15, 16), coinMat);
-            coin.rotation.x = Math.PI / 2; coin.rotation.z = Math.PI / 2; coin.position.y = 1.2; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin; 
+            coin.rotation.x = Math.PI / 2; // Berdiri tegak 
+            coin.position.y = 1.0; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin; 
         }
 
         // ==========================================
@@ -620,12 +545,13 @@
             scoreCard.style.transform = 'scale(1.1)'; setTimeout(()=> scoreCard.style.transform = 'scale(1)', 100);
         }
 
+        // BOX LEDAKAN PARTIKEL
         function createExplosion(x, y, z, colorHex) {
             const mat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: colorHex}));
             for(let i=0; i<12; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), mat);
-                const angle = Math.random() * Math.PI * 2; const spd = Math.random() * 0.4 + 0.2;
-                p.position.set(x, y, z); p.userData = { vx: Math.cos(angle)*spd, vy: Math.random()*0.5, vz: Math.sin(angle)*spd, life: 1 };
+                const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), mat);
+                const angle = Math.random() * Math.PI * 2; const spd = Math.random() * 0.5 + 0.2;
+                p.position.set(x, y, z); p.userData = { vx: Math.cos(angle)*spd, vy: Math.random()*0.6 + 0.2, vz: Math.sin(angle)*spd, life: 1 };
                 scene.add(p); particles.push(p);
             }
         }
@@ -636,47 +562,29 @@
         const lerp = (a, b, t) => a + (b - a) * t; 
         let frameCount = 0;
 
-        // SMART DENSITY SPAWNER
+        // SMART DENSITY SPAWNER (Bebas dari Area Jalan)
         function spawnDenseScenery(side, zOffset) {
             const rand = Math.random(); let obj;
             
-            // STRICT BIOMES
             if (currentBiome === 0) { 
-                // BIOMA HUTAN (Hanya cemara & batu)
-                if(rand < 0.75) obj = createTree('pine'); 
-                else if(rand < 0.9) obj = createLog(); 
-                else obj = createRock(); 
+                if(rand < 0.75) obj = createTree('pine'); else if(rand < 0.9) obj = createLog(); else obj = createRock(); 
             } else if (currentBiome === 1) { 
-                // BIOMA PEDESAAN
-                if(side === -1 && rand < 0.1) obj = createVillageHouse(); 
-                else if(rand < 0.3) obj = createFence(); 
-                else if(rand < 0.5) obj = createFlower(); 
-                else if(rand < 0.7) obj = createTallGrass(); 
-                else obj = createTree('round');
+                if(side === -1 && rand < 0.15) obj = createVillageHouse(); else if(rand < 0.3) obj = createFence(); else if(rand < 0.5) obj = createFlower(); else if(rand < 0.7) obj = createTallGrass(); else obj = createTree('round');
             } else { 
-                // BIOMA PANTAI (Hanya Kelapa & Payung)
-                if(side === 1 && rand < 0.35) obj = createUmbrella(); 
-                else if(side === -1 && rand < 0.1) obj = createVillageHouse(); 
-                else if(rand < 0.8) obj = createPalmTree(); 
-                else obj = createRock();
+                if(side === 1 && rand < 0.35) obj = createUmbrella(); else if(side === -1 && rand < 0.15) obj = createVillageHouse(); else if(rand < 0.8) obj = createPalmTree(); else obj = createRock();
             }
             
             if(obj) { 
                 let offset;
                 if (obj.userData.isHouse) {
-                    // Rumah TERKUNCI pada jarak 14-19 (Aman dari aspal)
-                    offset = 14 + Math.random() * 5; 
+                    offset = 16 + Math.random() * 8; // Rumah agak di dalam (ZONA AMAN)
                 } else if (obj.userData.isUmbrella) {
-                    // Payung TERKUNCI pada pasir (x = 22 sampai 32)
-                    offset = 22 + Math.random() * 10;
+                    offset = 20 + Math.random() * 10;
                 } else {
-                    // Pohon & Rerumputan di sisi aspal tapi aman
-                    offset = 8.5 + Math.random() * 12;
+                    offset = 9 + Math.random() * 10; // Pohon/Batu pinggir jalan
                 }
                 obj.position.set(side * offset, 0, -180 + zOffset); 
-                obj.scale.setScalar(0.1); 
-                obj.userData.targetScale = 1; 
-                scene.add(obj); scenery.push(obj); 
+                obj.scale.setScalar(0.1); obj.userData.targetScale = 1; scene.add(obj); scenery.push(obj); 
             }
         }
 
@@ -698,43 +606,34 @@
             }
             positions.needsUpdate = true;
 
-            // --- INFINITE BIOMES LOOP ---
             currentBiome = Math.floor(score / 2500) % 3;
-            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } // Hutan Gelap
-            else if (currentBiome === 1) { targetGroundColor.setHex(0x558B2F); } // Pedesaan Hijau Terang
-            else { targetGroundColor.setHex(0x7CB342); } // Pantai Tropis
+            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } 
+            else if (currentBiome === 1) { targetGroundColor.setHex(0x558B2F); } 
+            else { targetGroundColor.setHex(0x7CB342); } 
             grassGroundMat.color.lerp(targetGroundColor, 0.02); 
 
-            if (audioCtx && engineOsc) {
-                const currentPitch = 40 + ((speed - 0.65) * 180); 
-                engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1);
-            }
+            if (audioCtx && engineOsc) { const currentPitch = 40 + ((speed - 0.65) * 180); engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1); }
 
-            // --- DAY / NIGHT CYCLE ---
             dayTime += 0.0007; 
             const sunY = Math.sin(dayTime); const sunZ = Math.cos(dayTime);
             sunLight.position.set(-45, sunY * 45, sunZ * 45);
             sunMesh.position.set(-45 * 3, sunY * 45 * 3, sunZ * 45 * 3);
             sunMesh.lookAt(camera.position);
 
-            const colorDay = new THREE.Color(0x5DADE2);   
-            const colorSunrise = new THREE.Color(0xFFB7B2); 
-            const colorSunset = new THREE.Color(0xFF9E80);  
-            const colorNight = new THREE.Color(0x0F172A); 
+            const colorDay = new THREE.Color(0x5DADE2); const colorSunrise = new THREE.Color(0xFFB7B2); 
+            const colorSunset = new THREE.Color(0xFF9E80); const colorNight = new THREE.Color(0x0F172A); 
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
-                skyColor.copy(colorDay); isNight = false; sunLight.intensity = 1.4; hemiLight.intensity = 0.45; ambientLight.intensity = 0.35; starsMat.opacity = 0; playerHeadLight.intensity = 0; playerAmbientLight.intensity = 0;
-                sunMat.color.setHex(0xffffff); sunMat.opacity = 0.8;
+                skyColor.copy(colorDay); isNight = false; sunLight.intensity = 1.4; hemiLight.intensity = 0.5; ambientLight.intensity = 0.4; starsMat.opacity = 0; playerHeadLight.intensity = 0; playerAmbientLight.intensity = 0; sunMat.color.setHex(0xffffff); sunMat.opacity = 0.8;
             } else if (sunY < -0.3) {
-                skyColor.copy(colorNight); isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15; ambientLight.intensity = 0.15; starsMat.opacity = 1; playerHeadLight.intensity = 3.0; playerAmbientLight.intensity = 1.0;
-                sunMat.opacity = 0; 
+                skyColor.copy(colorNight); isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15; ambientLight.intensity = 0.15; starsMat.opacity = 1; playerHeadLight.intensity = 3.0; playerAmbientLight.intensity = 1.0; sunMat.opacity = 0; 
             } else {
                 let t = (sunY + 0.3) / 0.6; isNight = (t < 0.5);
                 const horizonColor = (sunZ < 0) ? colorSunset : colorSunrise;
                 if (t > 0.5) {
                     let f = (t - 0.5) * 2.0; skyColor.copy(horizonColor).lerp(colorDay, f);
-                    sunLight.intensity = lerp(0.4, 1.4, f); hemiLight.intensity = lerp(0.25, 0.45, f); ambientLight.intensity = lerp(0.2, 0.35, f); starsMat.opacity = lerp(0.5, 0, f);
+                    sunLight.intensity = lerp(0.4, 1.4, f); hemiLight.intensity = lerp(0.25, 0.5, f); ambientLight.intensity = lerp(0.2, 0.4, f); starsMat.opacity = lerp(0.5, 0, f);
                     sunMat.color.copy(horizonColor).lerp(new THREE.Color(0xffffff), f); sunMat.opacity = lerp(0.4, 0.8, f);
                 } else {
                     let f = t * 2.0; skyColor.copy(colorNight).lerp(horizonColor, f);
@@ -747,27 +646,22 @@
 
             if(comboTimer > 0) { comboTimer -= delta; if(comboTimer <= 0) { combo = 1; document.getElementById('combo-container').style.opacity = '0'; } }
 
-            // --- PLAYER PHYSICS ---
             playerGroup.position.x += (playerTargetX - playerGroup.position.x) * 0.18;
             playerGroup.rotation.z = (playerGroup.position.x - playerTargetX) * -0.08;
             playerGroup.position.y += playerVelocityY;
             if (playerGroup.position.y > 0) { playerVelocityY += gravity; isJumping = true; playerGroup.rotation.x = -0.15; } 
             else { if(isJumping) cameraShake = 0.3; playerGroup.position.y = 0; playerVelocityY = 0; isJumping = false; playerGroup.rotation.x = 0; }
             
-            camera.position.y = 5.5 + (playerGroup.position.y * 0.3);
-            camera.position.z = 11 + (speed - 0.65) * 10; 
+            camera.position.y = 5.5 + (playerGroup.position.y * 0.3); camera.position.z = 11 + (speed - 0.65) * 10; 
             if (cameraShake > 0) { camera.position.y += (Math.random() - 0.5) * cameraShake; camera.position.x += (Math.random() - 0.5) * cameraShake; cameraShake *= 0.9; }
 
-            // --- GUNUNG ABADI (INFINITE MOUNTAIN BACKGROUND) ---
-            if (frameCount % 45 === 0) { spawnMountain(); }
-
-            // --- DENSE SCENERY SPAWNERS (THROTTLED) ---
-            // Spawn di kiri & kanan secara bersamaan (Clustering tebal tapi hemat performa)
+            // SPAWNERS
+            if (frameCount % 45 === 0) { spawnMountain(1); spawnMountain(-1); }
+            if (frameCount % 15 === 0) { spawnTreeline(1, 0); spawnTreeline(-1, 0); } // Hutan Pembatas
+            
             if (frameCount % 8 === 0) {
-                spawnDenseScenery(-1, 0); // Kiri
-                if(Math.random() > 0.3) spawnDenseScenery(1, 0); // Kanan (sedikit lebih sepi)
+                spawnDenseScenery(-1, 0); if(Math.random() > 0.3) spawnDenseScenery(1, 0);
             }
-
             if (frameCount % 30 === 0) createCloud();
             if (frameCount % 60 === 0) {
                 const lightSide = Math.random() > 0.5 ? 1 : -1;
@@ -775,29 +669,50 @@
                 sLight.scale.setScalar(0.1); sLight.userData.targetScale = 1; scene.add(sLight); scenery.push(sLight);
             }
             
-            // Obstacles & Items
             if (frameCount % 60 === 0) {
-                let obj; const rand = Math.random();
-                if (rand < 0.6) obj = createCar(); else if (rand < 0.8) obj = createRamp(); else obj = createOil();
+                let obj; const rand = Math.random(); if (rand < 0.6) obj = createCar(); else if (rand < 0.8) obj = createRamp(); else obj = createOil();
                 obj.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
             }
             if (frameCount % 180 === 0 && currentBiome === 1) { 
-                let animal = Math.random() > 0.5 ? createCow() : createSheep();
-                let startSide = Math.random() > 0.5 ? 1 : -1; 
-                animal.position.set(startSide * 7, 0, -180); animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; 
-                animal.userData.speedX = startSide === 1 ? -0.05 : 0.05; scene.add(animal); obstacles.push(animal);
+                let animal = Math.random() > 0.5 ? createCow() : createSheep(); let startSide = Math.random() > 0.5 ? 1 : -1; 
+                animal.position.set(startSide * 7, 0, -180); animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; animal.userData.speedX = startSide === 1 ? -0.05 : 0.05; scene.add(animal); obstacles.push(animal);
             }
             if (frameCount % 85 === 0) {
                 const pkg = createPackage(); pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180); scene.add(pkg); packages.push(pkg);
             }
             if (frameCount % 120 === 0) {
                 const lane = [-4, 0, 4][Math.floor(Math.random() * 3)];
-                for(let i=0; i<3; i++){ const coin = createCoin(); coin.position.set(lane, 1.2, -180 - (i * 4)); scene.add(coin); packages.push(coin); }
+                for(let i=0; i<3; i++){ const coin = createCoin(); coin.position.set(lane, 1.0, -180 - (i * 4)); scene.add(coin); packages.push(coin); }
             }
 
             for (let i = 0; i < lines.length; i++) { lines[i].position.z += speed; if (lines[i].position.z > 30) lines[i].position.z -= 180; }
             
-            // Asap Knalpot
+            // CLEANUPS & ANIMATIONS
+            for (let i = mountains.length - 1; i >= 0; i--) { mountains[i].position.z += speed * 0.15; if (mountains[i].position.z > 50) { scene.remove(mountains[i]); mountains.splice(i, 1); } }
+            for (let i = clouds.length - 1; i >= 0; i--) { clouds[i].position.z += speed * 0.4; if (clouds[i].position.z > 30) { scene.remove(clouds[i]); clouds.splice(i, 1); } }
+            
+            for (let i = scenery.length - 1; i >= 0; i--) {
+                let obj = scenery[i]; obj.position.z += speed;
+                if (obj.scale.x < obj.userData.targetScale) obj.scale.addScalar(0.08); 
+                if (obj.userData.isHouse) { if (isNight) { obj.userData.winMat.emissive.setHex(0xffeb3b); obj.userData.winMat.emissiveIntensity = 0.8; } else { obj.userData.winMat.emissive.setHex(0x000000); } }
+                if (obj.userData.isLight) { if (isNight) { obj.userData.glowMat.opacity = 0.5; obj.userData.bulbMat.color.setHex(0xffeb3b); } else { obj.userData.glowMat.opacity = 0; obj.userData.bulbMat.color.setHex(0x222222); } }
+                if (obj.position.z > 30) { scene.remove(obj); scenery.splice(i, 1); }
+            }
+
+            // PERBAIKAN: Update Partikel Ledakan Koin (Agar tidak nyangkut jadi box aneh)
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
+                p.userData.vy -= 0.02; // Efek Gravitasi
+                p.scale.setScalar(p.userData.life); p.userData.life -= 0.05;
+                if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+            }
+
+            for (let i = smokeParticles.length - 1; i >= 0; i--) {
+                let p = smokeParticles[i]; p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
+                p.scale.setScalar(p.userData.life * 0.2); p.material.opacity = p.userData.life; p.userData.life -= 0.03;
+                if (p.userData.life <= 0) { scene.remove(p); smokeParticles.splice(i, 1); }
+            }
             if (frameCount % 4 === 0) {
                 const smokeMat = applyCurvedWorld(new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.8 }));
                 const smoke = new THREE.Mesh(new THREE.DodecahedronGeometry(0.2, 0), smokeMat);
@@ -805,34 +720,13 @@
                 smoke.userData = { vx: (Math.random() - 0.5) * 0.03, vy: Math.random() * 0.03 + 0.02, vz: speed * 0.5 + Math.random() * 0.05, life: 1.0 };
                 scene.add(smoke); smokeParticles.push(smoke);
             }
-            for (let i = smokeParticles.length - 1; i >= 0; i--) {
-                let p = smokeParticles[i]; p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
-                p.scale.setScalar(p.userData.life * 0.2); p.material.opacity = p.userData.life; p.userData.life -= 0.03;
-                if (p.userData.life <= 0) { scene.remove(p); smokeParticles.splice(i, 1); }
-            }
 
-            // Cleanup & Animation Array (Mountains, Clouds, Scenery)
-            for (let i = mountains.length - 1; i >= 0; i--) { mountains[i].position.z += speed * 0.15; if (mountains[i].position.z > 50) { scene.remove(mountains[i]); mountains.splice(i, 1); } }
-            for (let i = clouds.length - 1; i >= 0; i--) { clouds[i].position.z += speed * 0.4; if (clouds[i].position.z > 30) { scene.remove(clouds[i]); clouds.splice(i, 1); } }
-            
-            for (let i = scenery.length - 1; i >= 0; i--) {
-                let obj = scenery[i]; obj.position.z += speed;
-                if (obj.scale.x < obj.userData.targetScale) obj.scale.addScalar(0.08); 
-                
-                if (obj.userData.isHouse) {
-                    if (isNight) { obj.userData.winMat.emissive.setHex(0xffeb3b); obj.userData.winMat.emissiveIntensity = 0.8; } else { obj.userData.winMat.emissive.setHex(0x000000); }
-                }
-                if (obj.userData.isLight) {
-                    if (isNight) { obj.userData.glowMat.opacity = 0.5; obj.userData.bulbMat.color.setHex(0xffeb3b); } else { obj.userData.glowMat.opacity = 0; obj.userData.bulbMat.color.setHex(0x222222); }
-                }
-                if (obj.position.z > 30) { scene.remove(obj); scenery.splice(i, 1); }
-            }
-
-            // Item Collection Loop
+            // ANIMASI PUTARAN KOIN & BOX
             for (let i = packages.length - 1; i >= 0; i--) {
                 let pkg = packages[i];
                 pkg.position.z += speed; 
-                pkg.userData.type === 'coin' ? pkg.rotation.y += 0.08 : pkg.rotation.y += 0.05;
+                // Koin kini berputar pada sumbu Z karena bentuk cylindernya sudah ditidurkan ke arah kamera
+                pkg.userData.type === 'coin' ? pkg.rotation.z -= 0.08 : pkg.rotation.y += 0.05; 
 
                 if (Math.abs(pkg.position.z - playerGroup.position.z) < 2.2 && Math.abs(pkg.position.x - playerGroup.position.x) < 1.5 && !isJumping) {
                     comboTimer = 2.0; const comboEl = document.getElementById('combo-container');
@@ -851,59 +745,34 @@
                 if (pkg.position.z > 30) { scene.remove(pkg); packages.splice(i, 1); }
             }
 
-            // Obstacles Loop
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.position.z += speed;
-                
-                if (obs.userData.type === 'car') {
-                    obs.position.z += obs.userData.driveSpeed; obs.userData.wheels.forEach(w => w.rotation.x -= 0.15); 
-                    obs.userData.lights.forEach(hl => hl.opacity = isNight ? 0.6 : 0);
-                } else if (obs.userData.type === 'animal') {
-                    obs.position.x += obs.userData.speedX; obs.position.y = Math.abs(Math.sin(frameCount * 0.2)) * 0.5;
-                }
-
-                let hitDistZ = 2.8; let hitDistX = 1.8;
-                if(obs.userData.type === 'animal') { hitDistZ = 1.6; hitDistX = 1.5; }
+                if (obs.userData.type === 'car') { obs.position.z += obs.userData.driveSpeed; obs.userData.wheels.forEach(w => w.rotation.x -= 0.15); obs.userData.lights.forEach(hl => hl.opacity = isNight ? 0.6 : 0); } 
+                else if (obs.userData.type === 'animal') { obs.position.x += obs.userData.speedX; obs.position.y = Math.abs(Math.sin(frameCount * 0.2)) * 0.5; }
+                let hitDistZ = 2.8; let hitDistX = 1.8; if(obs.userData.type === 'animal') { hitDistZ = 1.6; hitDistX = 1.5; }
 
                 if (Math.abs(obs.position.z - playerGroup.position.z) < hitDistZ && Math.abs(obs.position.x - playerGroup.position.x) < hitDistX) {
-                    if (obs.userData.type === 'ramp' && !isJumping) {
-                        playerVelocityY = 0.38; obs.userData.type = 'used'; playSfx('jump');
-                    } else if (obs.userData.type === 'oil' && !isJumping) {
-                        playSfx('slip');
-                        let avail = [-4, 0, 4].filter(l => l !== playerTargetX);
-                        playerTargetX = avail[Math.floor(Math.random() * 2)];
-                        combo = 1; obs.position.y = -10;
-                    } else if ((obs.userData.type === 'car' || obs.userData.type === 'animal') && playerGroup.position.y < 1.2) {
-                        isGameOver = true; cameraShake = 1.0; crashGame(obs.userData.type === 'animal' ? "Nabrak Hewan!" : "Nabrak Mobil!");
-                    }
+                    if (obs.userData.type === 'ramp' && !isJumping) { playerVelocityY = 0.38; obs.userData.type = 'used'; playSfx('jump'); } 
+                    else if (obs.userData.type === 'oil' && !isJumping) { playSfx('slip'); let avail = [-4, 0, 4].filter(l => l !== playerTargetX); playerTargetX = avail[Math.floor(Math.random() * 2)]; combo = 1; obs.position.y = -10; } 
+                    else if ((obs.userData.type === 'car' || obs.userData.type === 'animal') && playerGroup.position.y < 1.2) { isGameOver = true; cameraShake = 1.0; crashGame(obs.userData.type === 'animal' ? "Nabrak Hewan!" : "Nabrak Mobil!"); }
                 }
                 if (obs.position.z > 40) { scene.remove(obs); obstacles.splice(i, 1); }
             }
 
-            score += Math.floor(speed * 0.5); document.getElementById('score').innerText = score; speed += 0.00015; 
-            renderer.render(scene, camera);
+            score += Math.floor(speed * 0.5); document.getElementById('score').innerText = score; speed += 0.00015; renderer.render(scene, camera);
         }
 
         function crashGame(msg) {
             if(engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime);
             const flash = document.getElementById('damage-flash'); flash.style.opacity = '1'; setTimeout(() => { flash.style.opacity = '0'; }, 200);
-            setTimeout(() => {
-                document.getElementById('controls').style.display = 'none';
-                document.getElementById('end-message').innerText = msg;
-                document.getElementById('end-packages').innerText = packageCount;
-                document.getElementById('end-score').innerText = score;
-                document.getElementById('game-over-screen').style.display = 'flex';
-            }, 300);
+            setTimeout(() => { document.getElementById('controls').style.display = 'none'; document.getElementById('end-message').innerText = msg; document.getElementById('end-packages').innerText = packageCount; document.getElementById('end-score').innerText = score; document.getElementById('game-over-screen').style.display = 'flex'; }, 300);
         }
 
         function updateCameraResponsive() {
-            const aspect = window.innerWidth / window.innerHeight;
-            camera.aspect = aspect;
-            if (aspect < 1) { camera.fov = 85; } else { camera.fov = 55; }
-            camera.updateProjectionMatrix();
+            const aspect = window.innerWidth / window.innerHeight; camera.aspect = aspect;
+            if (aspect < 1) { camera.fov = 85; } else { camera.fov = 55; } camera.updateProjectionMatrix();
         }
-
         window.addEventListener('resize', () => { renderer.setSize(window.innerWidth, window.innerHeight); updateCameraResponsive(); });
         updateCameraResponsive();
     </script>

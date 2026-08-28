@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Road Trip - Cinematic Dense Edition</title>
+    <title>Road Trip - Perfect Environment</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap');
         
@@ -68,8 +68,8 @@
     <div id="damage-flash"></div>
 
     <div id="start-screen">
-        <h1 style="color:#FFC107; font-size: 55px; text-shadow: 4px 4px 0 #fff; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FF9800;">Rich Environment</span></h1>
-        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Dense Woods & Perfect Colors!</p>
+        <h1 style="color:#FFC107; font-size: 55px; text-shadow: 4px 4px 0 #fff; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FF9800;">Perfect Vibe</span></h1>
+        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Dense Forests & Relaxing Beach!</p>
         
         <div id="loading-container"><div id="loading-bar"></div></div>
         <div id="loading-text">Memuat Dunia Magis... 0%</div>
@@ -110,7 +110,7 @@
         async function setupOfflineCache() {
             if ('caches' in window) {
                 try {
-                    const cache = await caches.open('road-trip-assets-v3');
+                    const cache = await caches.open('road-trip-assets-v4');
                     const urlsToCache = [
                         'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
                         'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js',
@@ -152,7 +152,7 @@
             return material;
         }
 
-        // PROCEDURAL TEXTURES (GLOW & COIN ONLY)
+        // PROCEDURAL TEXTURES
         function createGlowTexture(color1, color2, color3) {
             const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
             const ctx = canvas.getContext('2d'); const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
@@ -210,10 +210,9 @@
         }
 
         // ==========================================
-        // 3. SCENE, CAMERA & LIGHTING (Punchy Colors)
+        // 3. SCENE, CAMERA & LIGHTING 
         // ==========================================
         const scene = new THREE.Scene();
-        // Fog yang pas, tidak terlalu dekat tapi cukup untuk blending ujung map
         scene.fog = new THREE.Fog(0x5DADE2, 40, 160); 
         
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -224,28 +223,26 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; 
-        renderer.toneMappingExposure = 1.0; // Normal exposure agar warna pop-out
+        renderer.toneMappingExposure = 1.0; 
         document.body.appendChild(renderer.domElement);
 
-        // HemiLight dengan warna kebiruan tua untuk shadow yang kaya (tidak flat gray)
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); scene.add(ambientLight);
+        // Hemilight memberikan shadow kebiruan yang kontras & tidak flat
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x405060, 0.45); scene.add(hemiLight);
         
-        const sunLight = new THREE.DirectionalLight(0xffeedd, 1.4); // Lebih terang dan warm
+        const sunLight = new THREE.DirectionalLight(0xffeedd, 1.4); 
         sunLight.position.set(-45, 35, 10); sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
         sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 180;
         sunLight.shadow.camera.left = -45; sunLight.shadow.camera.right = 45;
         sunLight.shadow.camera.top = 45; sunLight.shadow.camera.bottom = -40;
-        sunLight.shadow.bias = -0.0005; sunLight.shadow.normalBias = 0.02; // Mempertegas shadow
+        sunLight.shadow.bias = -0.0005; sunLight.shadow.normalBias = 0.02;
         scene.add(sunLight);
 
-        // Volumetric Sun Fake
         const sunMat = new THREE.MeshBasicMaterial({ map: sunGlowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
         const sunMesh = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), sunMat);
         scene.add(sunMesh);
 
-        // Stars
         const starsGeo = new THREE.BufferGeometry();
         const starsCount = 500; const posArray = new Float32Array(starsCount * 3);
         for(let i = 0; i < starsCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 400; }
@@ -255,25 +252,34 @@
         const starMesh = new THREE.Points(starsGeo, starsMat); scene.add(starMesh);
 
         // ==========================================
-        // 4. TERRAIN MULTI-BIOME (Richer Colors)
+        // 4. TERRAIN MULTI-BIOME (Beach is Closer!)
         // ==========================================
-        const grassGroundMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x4CAF50, flatShading: true, roughness: 0.9 }));
-        const grassGround = new THREE.Mesh(new THREE.PlaneGeometry(150, 400, 1, 100), grassGroundMat);
-        grassGround.rotation.x = -Math.PI / 2; grassGround.position.set(-66, 0, 0); grassGround.receiveShadow = true; scene.add(grassGround);
+        // Daratan utama (Rumput/Tanah)
+        const grassGroundMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x2E4F2A, flatShading: true, roughness: 0.9 }));
+        const grassGround = new THREE.Mesh(new THREE.PlaneGeometry(160, 400, 1, 100), grassGroundMat);
+        grassGround.rotation.x = -Math.PI / 2; 
+        grassGround.position.set(-60, 0, 0); // Membentang dari kiri ujung hingga tepi pantai
+        grassGround.receiveShadow = true; scene.add(grassGround);
 
-        const sandBeachMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xE3C27C, flatShading: true, roughness: 1.0 }));
-        const sandBeach = new THREE.Mesh(new THREE.PlaneGeometry(40, 400, 1, 100), sandBeachMat);
-        sandBeach.rotation.x = -Math.PI / 2; sandBeach.position.set(28, -0.05, 0); sandBeach.receiveShadow = true; scene.add(sandBeach);
+        // Pasir Pantai (Lebih dekat ke jalan, mulai dari x = 20)
+        const sandBeachMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xEED49F, flatShading: true, roughness: 1.0 }));
+        const sandBeach = new THREE.Mesh(new THREE.PlaneGeometry(30, 400, 1, 100), sandBeachMat);
+        sandBeach.rotation.x = -Math.PI / 2; 
+        sandBeach.position.set(35, -0.05, 0); 
+        sandBeach.receiveShadow = true; scene.add(sandBeach);
 
-        const oceanGeo = new THREE.PlaneGeometry(100, 400, 20, 100);
-        const oceanSea = new THREE.Mesh(oceanGeo, applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x03A9F4, flatShading: true, roughness: 0.1, metalness: 0.2 })));
-        oceanSea.rotation.x = -Math.PI / 2; oceanSea.position.set(98, -0.6, 0); scene.add(oceanSea);
+        // Lautan (Lebih dekat ke jalan, mulai dari x = 50)
+        const oceanGeo = new THREE.PlaneGeometry(120, 400, 20, 100);
+        const oceanSea = new THREE.Mesh(oceanGeo, applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x29B6F6, flatShading: true, roughness: 0.1, metalness: 0.5 })));
+        oceanSea.rotation.x = -Math.PI / 2; 
+        oceanSea.position.set(110, -0.6, 0); 
+        scene.add(oceanSea);
 
         const roadMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x3d3d3d, roughness: 0.8 }));
         const road = new THREE.Mesh(new THREE.PlaneGeometry(12, 400, 1, 100), roadMat);
         road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, 0); road.receiveShadow = true; scene.add(road);
 
-        const curbMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.8 }));
+        const curbMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xd9d9d9, roughness: 0.8 }));
         for (let side of [-6.2, 6.2]) {
             const curb = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 400, 1, 1, 100), curbMat);
             curb.position.set(side, 0.1, 0); curb.receiveShadow = true; curb.castShadow = true; scene.add(curb);
@@ -304,9 +310,11 @@
             base.position.y = height / 2 - 2; base.castShadow = true; group.add(base);
             const snow = createMesh(new THREE.ConeGeometry(radius * 0.4, height * 0.4, 6), { color: 0xffffff, flatShading: true, roughness: 0.9 });
             snow.position.y = height * 0.8 - 2; group.add(snow);
-            group.position.set(-(Math.random() * 15 + 85), 0, -220); scene.add(group); mountains.push(group);
+            group.position.set(-(Math.random() * 30 + 60), 0, -220); // Posisi selalu di belakang aman
+            scene.add(group); mountains.push(group);
         }
-        for(let i=0; i<8; i++) { spawnMountain(); mountains[i].position.z = -150 + (i * 25); } // Mountains are denser too
+        // Pra-generate gunung agar langsung terisi penuh di layar
+        for(let i=0; i<10; i++) { spawnMountain(); mountains[i].position.z = -220 + (i * 25); }
 
         let clouds = [];
         function createCloud() {
@@ -319,8 +327,8 @@
             scene.add(cloudGroup); clouds.push(cloudGroup);
         }
 
-        // DENSE ENVIRONMENT PROPS
-        const pineColors = [0x2E7D32, 0x388E3C, 0x1B5E20]; // Color variation for trees
+        // Variasi Pohon & Objek Lingkungan
+        const pineColors = [0x2E7D32, 0x388E3C, 0x1B5E20];
         const roundColors = [0x66BB6A, 0x4CAF50, 0x81C784];
 
         function createTree(type) {
@@ -328,8 +336,7 @@
             const trunk = createMesh(new THREE.CylinderGeometry(0.3, 0.5, 2, 5), { color: 0x4e342e, flatShading: true });
             trunk.position.y = 1; trunk.castShadow = true; trunk.receiveShadow = true; group.add(trunk);
             if (type === 'pine') {
-                let yPos = 2.2; let rad = 2.2;
-                let cHex = pineColors[Math.floor(Math.random()*pineColors.length)];
+                let yPos = 2.2; let rad = 2.2; let cHex = pineColors[Math.floor(Math.random()*pineColors.length)];
                 for(let i=0; i<3; i++) {
                     const c = createMesh(new THREE.ConeGeometry(rad, 2.8, 6), { color: cHex, flatShading: true });
                     c.position.y = yPos; c.rotation.y = Math.random(); c.castShadow = true; group.add(c); yPos += 1.3; rad -= 0.6;
@@ -372,6 +379,7 @@
             const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047];
             const top = createMesh(new THREE.ConeGeometry(2.5, 1, 8), { color: colors[Math.floor(Math.random()*colors.length)], flatShading: true }); 
             top.position.y = 4; top.castShadow = true; group.add(top);
+            group.userData = { isUmbrella: true }; // Flag khusus untuk umbrella
             return group;
         }
 
@@ -399,40 +407,32 @@
             return group;
         }
 
-        // FULLY GEOMETRIC HOUSE (NO CANVAS TEXTURE) - Crisp & Aesthetic
+        // FULLY GEOMETRIC HOUSE (NO CANVAS TEXTURE)
         function createVillageHouse() {
             const group = new THREE.Group();
-            // Foundation
             const baseFoundation = createMesh(new THREE.BoxGeometry(4.8, 0.4, 4.8), { color: 0x78909c, flatShading: true }); baseFoundation.position.y = 0.2; baseFoundation.receiveShadow = true; group.add(baseFoundation);
             
-            // Wall (Solid color, no failing canvas texture)
             const wall = createMesh(new THREE.BoxGeometry(4.4, 3.2, 4.4), { color: 0xfffcf5, flatShading: true }); wall.position.y = 1.8; wall.castShadow = true; wall.receiveShadow = true; group.add(wall);
             
-            // Geometric Wood Pillars at Corners for details
             const pillarGeo = new THREE.BoxGeometry(0.3, 3.2, 0.3);
             for(let px of [-2.15, 2.15]) {
                 for(let pz of [-2.15, 2.15]) {
-                    const pillar = createMesh(pillarGeo, { color: 0x5D4037, flatShading: true });
-                    pillar.position.set(px, 1.8, pz); group.add(pillar);
+                    const pillar = createMesh(pillarGeo, { color: 0x5D4037, flatShading: true }); pillar.position.set(px, 1.8, pz); group.add(pillar);
                 }
             }
 
-            // Roof
             const roofColor = [0xef5350, 0x42a5f5, 0xffa726, 0x66bb6a][Math.floor(Math.random()*4)];
             const roof = createMesh(new THREE.ConeGeometry(4.2, 2.6, 4), { color: roofColor, flatShading: true }); roof.rotation.y = Math.PI/4; roof.position.y = 4.7; roof.castShadow = true; group.add(roof);
             
-            // Door
             const doorFrame = createMesh(new THREE.BoxGeometry(1.4, 2.2, 0.2), { color: 0x5d4037 }); doorFrame.position.set(0, 1.2, 2.21); group.add(doorFrame);
             const knob = createMesh(new THREE.DodecahedronGeometry(0.1, 0), {color: 0xffeb3b}); knob.position.set(0.5, 1.1, 2.32); group.add(knob);
 
-            // Windows
             const winMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xffecb3, emissive: 0x000000, metalness: 0.3, roughness: 0.2 }));
             const winL = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.1), winMat); winL.position.set(-1.2, 2.0, 2.22); group.add(winL);
             const sillL = createMesh(new THREE.BoxGeometry(1.2, 0.1, 0.2), {color: 0x5d4037}); sillL.position.set(-1.2, 1.45, 2.25); group.add(sillL);
             const winR = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.1), winMat); winR.position.set(1.2, 2.0, 2.22); group.add(winR);
             const sillR = createMesh(new THREE.BoxGeometry(1.2, 0.1, 0.2), {color: 0x5d4037}); sillR.position.set(1.2, 1.45, 2.25); group.add(sillR);
             
-            // Chimney
             const chimney = createMesh(new THREE.BoxGeometry(0.7, 2.2, 0.7), { color: 0x6d4c41, flatShading: true }); chimney.position.set(1.2, 4.8, 1.2); chimney.castShadow = true; group.add(chimney);
 
             group.userData = { isHouse: true, winMat: winMat }; return group;
@@ -456,7 +456,7 @@
             group.userData = { isLight: true, bulbMat: bulbMat, glowMat: groundGlowMat }; return group;
         }
 
-        // CARS (Procedural stripes instead of Canvas for reliability)
+        // CARS
         function createCar() {
             const group = new THREE.Group();
             const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047, 0x8e24aa];
@@ -464,7 +464,6 @@
             const bodyMat = {color: hexColor, flatShading: true, roughness: 0.6};
             
             const body = createMesh(new THREE.BoxGeometry(2.2, 0.8, 4.4), bodyMat); body.position.set(0, 0.7, 0); body.castShadow = true; group.add(body);
-            // Racing stripe geometry
             const stripe = createMesh(new THREE.BoxGeometry(0.6, 0.82, 4.42), {color: 0xffffff, flatShading: true}); stripe.position.set(0, 0.7, 0); group.add(stripe);
             
             const cabin = createMesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), bodyMat); cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
@@ -476,7 +475,6 @@
             const mirrorL = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), bodyMat); mirrorL.position.set(-1.0, 1.1, -1.0); group.add(mirrorL);
             const mirrorR = createMesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), bodyMat); mirrorR.position.set(1.0, 1.1, -1.0); group.add(mirrorR);
 
-            // Headlights & Cones
             let lightMats = [];
             const hlMat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: 0xffffff}));
             for(let x of [-0.8, 0.8]) { 
@@ -566,7 +564,7 @@
         let playerTargetX = 0; let isGameOver = false; let gameStarted = false; 
         
         let currentBiome = 0; 
-        const targetGroundColor = new THREE.Color(0x4CAF50); 
+        const targetGroundColor = new THREE.Color(0x2E4F2A); 
         let playerVelocityY = 0; let isJumping = false; const gravity = -0.015;
         let dayTime = Math.PI / 2; let isNight = false; let cameraShake = 0;
 
@@ -638,21 +636,47 @@
         const lerp = (a, b, t) => a + (b - a) * t; 
         let frameCount = 0;
 
-        // FUNGSI SPAWNER SUPER RAPAT (DENSE CLUSTERS)
+        // SMART DENSITY SPAWNER
         function spawnDenseScenery(side, zOffset) {
             const rand = Math.random(); let obj;
+            
+            // STRICT BIOMES
             if (currentBiome === 0) { 
-                if(rand < 0.7) obj = createTree('pine'); else if(rand < 0.85) obj = createLog(); else obj = createRock(); 
+                // BIOMA HUTAN (Hanya cemara & batu)
+                if(rand < 0.75) obj = createTree('pine'); 
+                else if(rand < 0.9) obj = createLog(); 
+                else obj = createRock(); 
             } else if (currentBiome === 1) { 
-                if(rand < 0.08) obj = createVillageHouse(); // Rumah lebih jarang
-                else if(rand < 0.3) obj = createFence(); else if(rand < 0.5) obj = createFlower(); else if(rand < 0.7) obj = createTallGrass(); else obj = createTree('round');
+                // BIOMA PEDESAAN
+                if(side === -1 && rand < 0.1) obj = createVillageHouse(); 
+                else if(rand < 0.3) obj = createFence(); 
+                else if(rand < 0.5) obj = createFlower(); 
+                else if(rand < 0.7) obj = createTallGrass(); 
+                else obj = createTree('round');
             } else { 
-                if(rand < 0.5) obj = createPalmTree(); else if(rand < 0.7) obj = createUmbrella(); else if(rand < 0.8) obj = createVillageHouse(); else obj = createRock();
+                // BIOMA PANTAI (Hanya Kelapa & Payung)
+                if(side === 1 && rand < 0.35) obj = createUmbrella(); 
+                else if(side === -1 && rand < 0.1) obj = createVillageHouse(); 
+                else if(rand < 0.8) obj = createPalmTree(); 
+                else obj = createRock();
             }
+            
             if(obj) { 
-                // Posisi X diacak menjauh dari jalan agar membentuk cluster tebal
-                obj.position.set(side * (Math.random() * 12 + 7), 0, -180 + zOffset); 
-                obj.scale.setScalar(0.1); obj.userData.targetScale = 1; scene.add(obj); scenery.push(obj); 
+                let offset;
+                if (obj.userData.isHouse) {
+                    // Rumah TERKUNCI pada jarak 14-19 (Aman dari aspal)
+                    offset = 14 + Math.random() * 5; 
+                } else if (obj.userData.isUmbrella) {
+                    // Payung TERKUNCI pada pasir (x = 22 sampai 32)
+                    offset = 22 + Math.random() * 10;
+                } else {
+                    // Pohon & Rerumputan di sisi aspal tapi aman
+                    offset = 8.5 + Math.random() * 12;
+                }
+                obj.position.set(side * offset, 0, -180 + zOffset); 
+                obj.scale.setScalar(0.1); 
+                obj.userData.targetScale = 1; 
+                scene.add(obj); scenery.push(obj); 
             }
         }
 
@@ -676,9 +700,9 @@
 
             // --- INFINITE BIOMES LOOP ---
             currentBiome = Math.floor(score / 2500) % 3;
-            if (currentBiome === 0) { targetGroundColor.setHex(0x388E3C); } // Hutan
-            else if (currentBiome === 1) { targetGroundColor.setHex(0x7CB342); } // Pedesaan
-            else { targetGroundColor.setHex(0xE3C27C); } // Pantai
+            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } // Hutan Gelap
+            else if (currentBiome === 1) { targetGroundColor.setHex(0x558B2F); } // Pedesaan Hijau Terang
+            else { targetGroundColor.setHex(0x7CB342); } // Pantai Tropis
             grassGroundMat.color.lerp(targetGroundColor, 0.02); 
 
             if (audioCtx && engineOsc) {
@@ -734,14 +758,14 @@
             camera.position.z = 11 + (speed - 0.65) * 10; 
             if (cameraShake > 0) { camera.position.y += (Math.random() - 0.5) * cameraShake; camera.position.x += (Math.random() - 0.5) * cameraShake; cameraShake *= 0.9; }
 
-            // --- DENSE SCENERY SPAWNERS ---
-            // Spawn di kiri & kanan secara bersamaan (Clustering tebal)
-            if (frameCount % 4 === 0) {
+            // --- GUNUNG ABADI (INFINITE MOUNTAIN BACKGROUND) ---
+            if (frameCount % 45 === 0) { spawnMountain(); }
+
+            // --- DENSE SCENERY SPAWNERS (THROTTLED) ---
+            // Spawn di kiri & kanan secara bersamaan (Clustering tebal tapi hemat performa)
+            if (frameCount % 8 === 0) {
                 spawnDenseScenery(-1, 0); // Kiri
-                if(Math.random() > 0.5) spawnDenseScenery(-1, -3); // Kiri ekstra tebal
-                
-                spawnDenseScenery(1, 0); // Kanan
-                if(Math.random() > 0.5) spawnDenseScenery(1, -3); // Kanan ekstra tebal
+                if(Math.random() > 0.3) spawnDenseScenery(1, 0); // Kanan (sedikit lebih sepi)
             }
 
             if (frameCount % 30 === 0) createCloud();
@@ -751,7 +775,7 @@
                 sLight.scale.setScalar(0.1); sLight.userData.targetScale = 1; scene.add(sLight); scenery.push(sLight);
             }
             
-            // Obstacles
+            // Obstacles & Items
             if (frameCount % 60 === 0) {
                 let obj; const rand = Math.random();
                 if (rand < 0.6) obj = createCar(); else if (rand < 0.8) obj = createRamp(); else obj = createOil();
@@ -786,6 +810,8 @@
                 p.scale.setScalar(p.userData.life * 0.2); p.material.opacity = p.userData.life; p.userData.life -= 0.03;
                 if (p.userData.life <= 0) { scene.remove(p); smokeParticles.splice(i, 1); }
             }
+
+            // Cleanup & Animation Array (Mountains, Clouds, Scenery)
             for (let i = mountains.length - 1; i >= 0; i--) { mountains[i].position.z += speed * 0.15; if (mountains[i].position.z > 50) { scene.remove(mountains[i]); mountains.splice(i, 1); } }
             for (let i = clouds.length - 1; i >= 0; i--) { clouds[i].position.z += speed * 0.4; if (clouds[i].position.z > 30) { scene.remove(clouds[i]); clouds.splice(i, 1); } }
             
@@ -802,7 +828,7 @@
                 if (obj.position.z > 30) { scene.remove(obj); scenery.splice(i, 1); }
             }
 
-            // Item Collection
+            // Item Collection Loop
             for (let i = packages.length - 1; i >= 0; i--) {
                 let pkg = packages[i];
                 pkg.position.z += speed; 
@@ -825,7 +851,7 @@
                 if (pkg.position.z > 30) { scene.remove(pkg); packages.splice(i, 1); }
             }
 
-            // Obstacles
+            // Obstacles Loop
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.position.z += speed;

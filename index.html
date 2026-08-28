@@ -20,8 +20,8 @@
         /* UI HUD */
         #ui-container { position: absolute; top: 15px; left: 0; width: 100%; text-align: center; pointer-events: none; z-index: 100; display: none; }
         #title { color: #FF9800; font-size: 40px; font-weight: 900; text-shadow: 2px 2px 0 #FFF, -1px -1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF, 0px 6px 12px rgba(0,0,0,0.25); margin: 0; letter-spacing: 2px; }
-        .hud-card { display: inline-block; background: rgba(255, 255, 255, 0.35); padding: 8px 22px; border-radius: 30px; margin: 4px; backdrop-filter: blur(12px); border: 2px solid rgba(255,255,255,0.7); box-shadow: 0 6px 15px rgba(0,0,0,0.1); transition: transform 0.1s; }
-        .hud-text { color: #222; font-size: 20px; font-weight: 900; text-shadow: 1px 1px 0 #fff; }
+        .hud-card { display: inline-block; background: rgba(255, 255, 255, 0.4); padding: 8px 24px; border-radius: 30px; margin: 4px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 6px 15px rgba(0,0,0,0.1); transition: transform 0.1s; }
+        .hud-text { color: #333; font-size: 20px; font-weight: 900; text-shadow: 1px 1px 0 #fff; }
         
         #combo-container { position: absolute; top: 90px; right: 25px; font-size: 34px; font-weight: 900; color: #ffeb3b; text-shadow: 2px 2px 0 #e65100, -1px -1px 0 #e65100, 1px -1px 0 #e65100, -1px 1px 0 #e65100; opacity: 0; transition: opacity 0.3s, transform 0.1s; z-index: 100;}
         
@@ -30,18 +30,35 @@
         @keyframes floatUp { 0% { transform: translate(-50%, 0) scale(0.5); opacity: 1; } 50% { transform: translate(-50%, -60px) scale(1.3); opacity: 1; } 100% { transform: translate(-50%, -100px) scale(1); opacity: 0; } }
 
         /* Kontrol */
-        #controls { position: absolute; bottom: 25px; left: 0; width: 100%; display: none; justify-content: space-between; padding: 0 25px; z-index: 1000; }
-        .btn { pointer-events: auto; width: 42vw; max-width: 160px; padding: 18px 0; font-size: 20px; font-weight: 900; background: linear-gradient(to bottom, #FFB347, #FF9800); border: 4px solid #ffffff; border-radius: 25px; color: white; cursor: pointer; text-align: center; box-shadow: 0 8px 0 #c27600, 0 15px 20px rgba(0,0,0,0.25); }
+        #controls { position: absolute; bottom: 30px; left: 0; width: 100%; display: none; justify-content: space-between; padding: 0 25px; z-index: 1000; }
+        .btn { pointer-events: auto; width: 42vw; max-width: 160px; padding: 18px 0; font-size: 22px; font-weight: 900; background: linear-gradient(to bottom, #FFB347, #FF9800); border: 4px solid #ffffff; border-radius: 25px; color: white; cursor: pointer; text-align: center; box-shadow: 0 8px 0 #c27600, 0 15px 20px rgba(0,0,0,0.25); text-transform: uppercase; transition: transform 0.1s; }
         .btn:active { transform: translateY(8px); box-shadow: 0 0px 0 #c27600; }
 
         /* Start Screen */
         #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #2b5876, #4e4376); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
-        #loading-container { width: 80%; max-width: 350px; height: 25px; background: rgba(255,255,255,0.2); border-radius: 15px; border: 3px solid #fff; margin-top: 30px; overflow: hidden; }
-        #loading-bar { width: 0%; height: 100%; background: #FFC107; transition: width 0.3s ease; }
+        #loading-container { width: 80%; max-width: 350px; height: 25px; background: rgba(255,255,255,0.2); border-radius: 15px; border: 3px solid #fff; margin-top: 30px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        #loading-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #FFC107, #FF9800); transition: width 0.3s ease; }
         #loading-text { color: #fff; font-size: 18px; font-weight: bold; margin-top: 10px; text-shadow: 1px 1px 2px #000; }
         
-        #start-btn { display: none; padding: 16px 55px; font-size: 30px; font-weight: 900; background: #4CAF50; border: 5px solid #fff; border-radius: 30px; color: white; cursor: pointer; box-shadow: 0 10px 0 #2E7D32, 0 15px 30px rgba(0,0,0,0.3); animation: pulse 1.5s infinite; margin-top: 30px;}
+        #start-btn { display: none; padding: 18px 60px; font-size: 32px; font-weight: 900; background: linear-gradient(to bottom, #66bb6a, #43a047); border: 5px solid #fff; border-radius: 35px; color: white; cursor: pointer; box-shadow: 0 10px 0 #2E7D32, 0 15px 30px rgba(0,0,0,0.3); animation: pulse 1.5s infinite; margin-top: 30px;}
+        
+        /* Game Over Custom Modal */
+        #game-over-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 15, 37, 0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 3000; }
+        .modal-card { background: rgba(255, 255, 255, 0.9); padding: 35px 25px; border-radius: 35px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.4); border: 3px solid #fff; width: 85%; max-width: 380px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .modal-card h2 { color: #e53935; font-size: 40px; margin: 0 0 5px 0; text-shadow: 2px 2px 0 #fff; }
+        .modal-card p { font-size: 20px; color: #555; margin-bottom: 25px; font-weight: 800; }
+        .stats-grid { display: flex; justify-content: space-between; margin-bottom: 30px; background: rgba(236, 240, 241, 0.8); padding: 15px 20px; border-radius: 20px; border: 2px solid #fff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.05); }
+        .stats-grid div { font-size: 16px; color: #7f8c8d; font-weight: 800; width: 50%; }
+        .stats-grid span { display: block; font-size: 32px; color: #2c3e50; margin-top: 5px; }
+        
+        #restart-btn { width: 100%; max-width: 100%; margin-top: 10px; background: linear-gradient(to bottom, #4fc3f7, #0288d1); box-shadow: 0 8px 0 #01579b, 0 15px 20px rgba(0,0,0,0.25); }
+        #restart-btn:active { box-shadow: 0 0px 0 #01579b; transform: translateY(8px); }
+
+        /* Damage Flash Overlay */
+        #damage-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, rgba(255,0,0,0.5) 100%); opacity: 0; z-index: 2500; pointer-events: none; transition: opacity 0.2s; }
+
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes popIn { 0% { transform: scale(0.7) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -49,8 +66,10 @@
         <source src="https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.mp3" type="audio/mpeg">
     </audio>
 
+    <div id="damage-flash"></div>
+
     <div id="start-screen">
-        <h1 style="color:#FFC107; font-size: 60px; text-shadow: 4px 4px 0 #000; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP</h1>
+        <h1 style="color:#FFC107; font-size: 65px; text-shadow: 4px 4px 0 #000; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP</h1>
         <p style="color: #fff; font-size: 16px; font-weight: bold; margin-top: 15px; text-shadow: 1px 1px 2px #000; text-align: center;">Soft Dreamy Visuals & Enhanced 3D Details!</p>
         
         <div id="loading-container"><div id="loading-bar"></div></div>
@@ -58,9 +77,21 @@
         <button id="start-btn">RIDE NOW</button>
     </div>
 
+    <!-- Custom Game Over Screen -->
+    <div id="game-over-screen">
+        <div class="modal-card">
+            <h2>💥 CRASH!</h2>
+            <p id="end-message">Aduh! Nabrak!</p>
+            <div class="stats-grid">
+                <div style="border-right: 2px solid #ddd;">📦 Paket<br><span id="end-packages">0</span></div>
+                <div>⭐ Skor<br><span id="end-score">0</span></div>
+            </div>
+            <button id="restart-btn" class="btn">MAIN LAGI 🔄</button>
+        </div>
+    </div>
+
     <div id="ui-container">
-        <h1 id="title">Road Trip</h1>
-        <div class="hud-card" id="score-card"><span class="hud-text">Skor: <span id="score" style="color:#FF5722;">0</span></span></div>
+        <div class="hud-card" id="score-card"><span class="hud-text">⭐ Skor: <span id="score" style="color:#FF5722;">0</span></span></div>
         <div class="hud-card"><span class="hud-text">📦 Paket: <span id="package-count" style="color:#4CAF50;">0</span></span></div>
     </div>
     <div id="combo-container">x<span id="combo-text">1</span> COMBO!</div>
@@ -163,10 +194,9 @@
         }
 
         // ==========================================
-        // 3. SCENE, CAMERA & ENHANCED LIGHTING (SPATIAL & COLOR BALANCED)
+        // 3. SCENE, CAMERA & LIGHTING 
         // ==========================================
         const scene = new THREE.Scene();
-        // Mengubah ke Fog linear untuk transisi kedalaman (depth/spatial) yang lebih realistis
         scene.fog = new THREE.Fog(0x87CEEB, 40, 180); 
         
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -176,7 +206,6 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
-        // Menurunkan Exposure agar tidak terlalu bright (dari 1.05 menjadi 0.85)
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.outputEncoding = THREE.sRGBEncoding; 
@@ -184,25 +213,20 @@
         renderer.toneMappingExposure = 0.85; 
         document.body.appendChild(renderer.domElement);
 
-        // PENCAHAYAAN (SPATIAL DEPTH)
-        // Menggunakan cahaya yang lebih seimbang agar objek memiliki volume
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.25); scene.add(ambientLight);
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.35); scene.add(hemiLight);
         
-        // Matahari diturunkan intensitasnya dan digeser angle-nya agar bayangan memberikan kesan 3D (Spatial)
         const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.15); 
-        sunLight.position.set(-45, 35, 10); // Sudut menyamping yang tegas
+        sunLight.position.set(-45, 35, 10);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
-        // Memperluas area tangkapan bayangan
         sunLight.shadow.camera.near = 0.5; sunLight.shadow.camera.far = 180;
         sunLight.shadow.camera.left = -45; sunLight.shadow.camera.right = 45;
         sunLight.shadow.camera.top = 45; sunLight.shadow.camera.bottom = -40;
         sunLight.shadow.bias = -0.0005;
-        sunLight.shadow.normalBias = 0.05; // Mengurangi glitch artefak shadow
+        sunLight.shadow.normalBias = 0.05;
         scene.add(sunLight);
 
-        // Floating Dust Sparkles (Atmospheric Dust)
         const dustGeo = new THREE.BufferGeometry();
         const dustCount = 180; const dustPos = new Float32Array(dustCount * 3);
         for(let i = 0; i < dustCount * 3; i+=3) {
@@ -215,7 +239,6 @@
         const dustMesh = new THREE.Points(dustGeo, dustMat);
         scene.add(dustMesh);
 
-        // Bintang Malam
         const starsGeo = new THREE.BufferGeometry();
         const starsCount = 450; const posArray = new Float32Array(starsCount * 3);
         for(let i = 0; i < starsCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 400; }
@@ -414,13 +437,31 @@
             const cabin = createMesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), bodyMat); cabin.position.set(0, 1.4, -0.2); cabin.castShadow = true; group.add(cabin);
             const glass = createMesh(new THREE.BoxGeometry(1.65, 0.5, 2.45), {color: 0x111122, roughness: 0.1}); glass.position.set(0, 1.4, -0.2); group.add(glass);
             
-            for(let x of [-1.15, 1.15]) for(let z of [-1.3, 1.3]) {
-                const w = createMesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 8), {color: 0x111111, flatShading: true}); w.rotation.z=Math.PI/2; w.position.set(x,0.4,z); w.castShadow=true; group.add(w);
+            // ANIMASI RODA MOBIL (Memisahkan roda dalam Group agar bisa diputar di sumbu X)
+            let wheelGroups = [];
+            for(let x of [-1.15, 1.15]) {
+                for(let z of [-1.3, 1.3]) {
+                    const wGroup = new THREE.Group();
+                    wGroup.position.set(x, 0.4, z);
+                    const w = createMesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 8), {color: 0x222222, flatShading: true}); 
+                    w.rotation.z = Math.PI/2; 
+                    w.castShadow = true; 
+                    wGroup.add(w);
+                    
+                    // Tambahkan velg putih kecil agar putaran roda lebih terlihat
+                    const rim = createMesh(new THREE.BoxGeometry(0.05, 0.5, 0.1), {color: 0xeeeeee});
+                    rim.position.x = x > 0 ? 0.16 : -0.16;
+                    wGroup.add(rim);
+
+                    group.add(wGroup);
+                    wheelGroups.push(wGroup);
+                }
             }
+
             const brakeMat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: 0xff0000}));
             for(let x of [-0.8, 0.8]) { const tl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), brakeMat); tl.position.set(x, 0.8, 2.21); group.add(tl); }
             
-            group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1 }; return group;
+            group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1, wheels: wheelGroups }; return group;
         }
 
         function createPackage() {
@@ -498,6 +539,11 @@
         document.getElementById('btn-right').addEventListener('touchstart', (e)=>{e.preventDefault(); moveRight();}, {passive:false});
         document.getElementById('btn-right').addEventListener('mousedown', (e)=>{e.preventDefault(); moveRight();});
         
+        // RESTART LISTENER
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            location.reload();
+        });
+
         document.getElementById('start-btn').addEventListener('click', () => {
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('ui-container').style.display = 'block'; document.getElementById('controls').style.display = 'flex';
@@ -525,9 +571,9 @@
         }
 
         // ==========================================
-        // 7. GAME LOOP UTAMA (DENGAN SMOOTH TRANSITION)
+        // 7. GAME LOOP UTAMA
         // ==========================================
-        const lerp = (a, b, t) => a + (b - a) * t; // Helper untuk interpolasi transisi mulus
+        const lerp = (a, b, t) => a + (b - a) * t; 
         let frameCount = 0;
 
         function animate() {
@@ -561,74 +607,37 @@
                 engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1);
             }
 
-            // --- SMOOTH DAY / NIGHT CYCLE ---
+            // Day / Night Cycle
             dayTime += 0.0008; 
             const sunY = Math.sin(dayTime); 
             const sunZ = Math.cos(dayTime);
-            sunLight.position.set(-45, sunY * 45, sunZ * 45); // Sudut matahari dinamis
+            sunLight.position.set(-45, sunY * 45, sunZ * 45);
 
             const colorDay = new THREE.Color(0x87CEEB); 
-            const colorSunrise = new THREE.Color(0xffb787); // Rona persik lembut untuk Pagi Hari
-            const colorSunset = new THREE.Color(0xff8c42);  // Rona oranye hangat untuk Sore Hari
+            const colorSunrise = new THREE.Color(0xffb787); 
+            const colorSunset = new THREE.Color(0xff8c42);  
             const colorNight = new THREE.Color(0x0a0f25);
-            
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
-                // FULL SIANG
-                skyColor.copy(colorDay); 
-                isNight = false; 
-                sunLight.intensity = 1.15; 
-                hemiLight.intensity = 0.35; 
-                ambientLight.intensity = 0.25; 
-                starsMat.opacity = 0; 
-                playerHeadLight.intensity = 0; 
-                playerAmbientLight.intensity = 0;
+                skyColor.copy(colorDay); isNight = false; sunLight.intensity = 1.15; hemiLight.intensity = 0.35; ambientLight.intensity = 0.25; starsMat.opacity = 0; playerHeadLight.intensity = 0; playerAmbientLight.intensity = 0;
             } else if (sunY < -0.3) {
-                // FULL MALAM
-                skyColor.copy(colorNight); 
-                isNight = true; 
-                sunLight.intensity = 0; 
-                hemiLight.intensity = 0.15; 
-                ambientLight.intensity = 0.1; 
-                starsMat.opacity = 1; 
-                playerHeadLight.intensity = 2.5; 
-                playerAmbientLight.intensity = 1.0;
+                skyColor.copy(colorNight); isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15; ambientLight.intensity = 0.1; starsMat.opacity = 1; playerHeadLight.intensity = 2.5; playerAmbientLight.intensity = 1.0;
             } else {
-                // TRANSISI HALUS (Tidak ada lagi loncatan/snap intensitas cahaya)
-                // Normalize sunY dari rentang [-0.3, 0.3] ke rentang [0.0 ke 1.0]
-                let t = (sunY + 0.3) / 0.6; 
-                isNight = (t < 0.5);
-                
-                // Menentukan arah matahari terbit (Pagi) atau terbenam (Sore) berdasarkan sumbu Z
+                let t = (sunY + 0.3) / 0.6; isNight = (t < 0.5);
                 const horizonColor = (sunZ < 0) ? colorSunset : colorSunrise;
-                
                 if (t > 0.5) {
-                    // Transisi: Horizon (0.5) menuju Siang Terang (1.0)
                     let f = (t - 0.5) * 2.0; 
                     skyColor.copy(horizonColor).lerp(colorDay, f);
-                    sunLight.intensity = lerp(0.4, 1.15, f);
-                    hemiLight.intensity = lerp(0.2, 0.35, f);
-                    ambientLight.intensity = lerp(0.15, 0.25, f);
-                    starsMat.opacity = lerp(0.5, 0, f);
+                    sunLight.intensity = lerp(0.4, 1.15, f); hemiLight.intensity = lerp(0.2, 0.35, f); ambientLight.intensity = lerp(0.15, 0.25, f); starsMat.opacity = lerp(0.5, 0, f);
                 } else {
-                    // Transisi: Malam Gelap (0.0) menuju Horizon (0.5)
                     let f = t * 2.0; 
                     skyColor.copy(colorNight).lerp(horizonColor, f);
-                    sunLight.intensity = lerp(0, 0.4, f);
-                    hemiLight.intensity = lerp(0.15, 0.2, f);
-                    ambientLight.intensity = lerp(0.1, 0.15, f);
-                    starsMat.opacity = lerp(1, 0.5, f);
+                    sunLight.intensity = lerp(0, 0.4, f); hemiLight.intensity = lerp(0.15, 0.2, f); ambientLight.intensity = lerp(0.1, 0.15, f); starsMat.opacity = lerp(1, 0.5, f);
                 }
-                
-                // Lampu mobil memudar/menyala secara mulus
-                playerHeadLight.intensity = lerp(2.5, 0, t);
-                playerAmbientLight.intensity = lerp(1.0, 0, t);
+                playerHeadLight.intensity = lerp(2.5, 0, t); playerAmbientLight.intensity = lerp(1.0, 0, t);
             }
-            
-            scene.background = skyColor; 
-            scene.fog.color = skyColor;
-            // --------------------------------
+            scene.background = skyColor; scene.fog.color = skyColor;
 
             if(comboTimer > 0) {
                 comboTimer -= delta;
@@ -656,30 +665,19 @@
             // Spawners
             if (frameCount % 60 === 0) spawnMountain(); 
             if (frameCount % 10 === 0) {
-                const side = Math.random() > 0.5 ? 1 : -1;
-                const rand = Math.random(); let obj;
-                
-                if (currentBiome === 0) { 
-                    if(rand < 0.6) obj = createTree('pine'); else if(rand < 0.8) obj = createBush(); else obj = createRock();
-                    obj.position.set(side * (Math.random() * 8 + 8), 0, -180);
-                } else if (currentBiome === 1) { 
-                    if(side === -1 && rand < 0.3) obj = createVillageHouse(); 
-                    else if(rand < 0.5) obj = createTree('round'); else obj = createBush();
-                    obj.position.set(side * (Math.random() * 8 + 8), 0, -180);
-                } else { 
-                    if(side === 1) obj = createPalmTree(); else obj = createVillageHouse();
-                    obj.position.set(side * (Math.random() * 8 + 8), 0, -180);
-                }
+                const side = Math.random() > 0.5 ? 1 : -1; const rand = Math.random(); let obj;
+                if (currentBiome === 0) { if(rand < 0.6) obj = createTree('pine'); else if(rand < 0.8) obj = createBush(); else obj = createRock(); } 
+                else if (currentBiome === 1) { if(side === -1 && rand < 0.3) obj = createVillageHouse(); else if(rand < 0.5) obj = createTree('round'); else obj = createBush(); } 
+                else { if(side === 1) obj = createPalmTree(); else obj = createVillageHouse(); }
+                obj.position.set(side * (Math.random() * 8 + 8), 0, -180);
                 obj.scale.setScalar(0.1); obj.userData.targetScale = 1; scene.add(obj); scenery.push(obj);
             }
-            
             if (frameCount % 45 === 0) createCloud();
             if (frameCount % 60 === 0) {
                 const lightSide = Math.random() > 0.5 ? 1 : -1;
                 const sLight = createStreetLight(lightSide); sLight.position.set(lightSide * 7.5, 0, -180);
                 sLight.scale.setScalar(0.1); sLight.userData.targetScale = 1; scene.add(sLight); scenery.push(sLight);
             }
-
             if (frameCount % 60 === 0) {
                 let obj; const rand = Math.random();
                 if (rand < 0.6) obj = createCar(); else if (rand < 0.8) obj = createRamp(); else obj = createOil();
@@ -696,15 +694,13 @@
             }
             if (frameCount % 120 === 0) {
                 const lane = [-4, 0, 4][Math.floor(Math.random() * 3)];
-                for(let i=0; i<3; i++){
-                    const coin = createCoin(); coin.position.set(lane, 1.2, -180 - (i * 4)); scene.add(coin); packages.push(coin); 
-                }
+                for(let i=0; i<3; i++){ const coin = createCoin(); coin.position.set(lane, 1.2, -180 - (i * 4)); scene.add(coin); packages.push(coin); }
             }
 
             // Movement & Animation
             for (let i = 0; i < lines.length; i++) { lines[i].position.z += speed; if (lines[i].position.z > 30) lines[i].position.z -= 180; }
             
-            // Asap Knalpot + Debu Ban
+            // Asap Knalpot
             if (frameCount % 4 === 0) {
                 const smokeMat = applyCurvedWorld(new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.8 }));
                 const smoke = new THREE.Mesh(new THREE.DodecahedronGeometry(0.2, 0), smokeMat);
@@ -730,12 +726,10 @@
                 let obj = scenery[i]; obj.position.z += speed;
                 if (obj.scale.x < obj.userData.targetScale) obj.scale.addScalar(0.08); 
                 if (obj.userData.isHouse) {
-                    if (isNight) { obj.userData.winMat.emissive.setHex(0xffeb3b); obj.userData.winMat.emissiveIntensity = 0.8; }
-                    else { obj.userData.winMat.emissive.setHex(0x000000); }
+                    if (isNight) { obj.userData.winMat.emissive.setHex(0xffeb3b); obj.userData.winMat.emissiveIntensity = 0.8; } else { obj.userData.winMat.emissive.setHex(0x000000); }
                 }
                 if (obj.userData.isLight) {
-                    if (isNight) { obj.userData.glowMat.opacity = 0.5; obj.userData.bulbMat.color.setHex(0xffeb3b); } 
-                    else { obj.userData.glowMat.opacity = 0; obj.userData.bulbMat.color.setHex(0x222222); }
+                    if (isNight) { obj.userData.glowMat.opacity = 0.5; obj.userData.bulbMat.color.setHex(0xffeb3b); } else { obj.userData.glowMat.opacity = 0; obj.userData.bulbMat.color.setHex(0x222222); }
                 }
                 if (obj.position.z > 30) { scene.remove(obj); scenery.splice(i, 1); }
             }
@@ -767,8 +761,11 @@
                 let obs = obstacles[i];
                 obs.position.z += speed;
                 
+                // Menganimasi gerakan objek & roda
                 if (obs.userData.type === 'car') {
                     obs.position.z += obs.userData.driveSpeed; 
+                    // Putar roda mobil ke depan agar terlihat jalan
+                    obs.userData.wheels.forEach(w => w.rotation.x -= 0.15); 
                 } else if (obs.userData.type === 'animal') {
                     obs.position.x += obs.userData.speedX; obs.position.y = Math.abs(Math.sin(frameCount * 0.2)) * 0.5;
                 }
@@ -785,7 +782,8 @@
                         playerTargetX = avail[Math.floor(Math.random() * 2)];
                         combo = 1; obs.position.y = -10;
                     } else if ((obs.userData.type === 'car' || obs.userData.type === 'animal') && playerGroup.position.y < 1.2) {
-                        isGameOver = true; cameraShake = 1.0; crashGame(obs.userData.type === 'animal' ? "Aduh! Nabrak Hewan!" : "CRASH!");
+                        isGameOver = true; cameraShake = 1.0; 
+                        crashGame(obs.userData.type === 'animal' ? "Nabrak Hewan!" : "Nabrak Mobil!");
                     }
                 }
                 if (obs.position.z > 40) { scene.remove(obs); obstacles.splice(i, 1); }
@@ -797,10 +795,20 @@
 
         function crashGame(msg) {
             if(engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            
+            // Efek Flash Merah
+            const flash = document.getElementById('damage-flash');
+            flash.style.opacity = '1';
+            setTimeout(() => { flash.style.opacity = '0'; }, 200);
+
+            // Tampilkan Modal UI Game Over
             setTimeout(() => {
-                alert("💥 " + msg + "\nTotal Paket: " + packageCount + "\nSkor Akhir: " + score);
-                location.reload();
-            }, 50);
+                document.getElementById('controls').style.display = 'none'; // Sembunyikan tombol
+                document.getElementById('end-message').innerText = msg;
+                document.getElementById('end-packages').innerText = packageCount;
+                document.getElementById('end-score').innerText = score;
+                document.getElementById('game-over-screen').style.display = 'flex';
+            }, 300);
         }
 
         // ==========================================
@@ -809,13 +817,7 @@
         function updateCameraResponsive() {
             const aspect = window.innerWidth / window.innerHeight;
             camera.aspect = aspect;
-            
-            if (aspect < 1) {
-                camera.fov = 85; 
-            } else {
-                camera.fov = 55; 
-            }
-            
+            if (aspect < 1) { camera.fov = 85; } else { camera.fov = 55; }
             camera.updateProjectionMatrix();
         }
 

@@ -525,8 +525,9 @@
         }
 
         // ==========================================
-        // 7. GAME LOOP UTAMA
+        // 7. GAME LOOP UTAMA (DENGAN SMOOTH TRANSITION)
         // ==========================================
+        const lerp = (a, b, t) => a + (b - a) * t; // Helper untuk interpolasi transisi mulus
         let frameCount = 0;
 
         function animate() {
@@ -560,28 +561,74 @@
                 engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1);
             }
 
-            // Day / Night Cycle (Update warna Fog dan Intensitas sesuai setting baru)
+            // --- SMOOTH DAY / NIGHT CYCLE ---
             dayTime += 0.0008; 
-            const sunY = Math.sin(dayTime); const sunZ = Math.cos(dayTime);
+            const sunY = Math.sin(dayTime); 
+            const sunZ = Math.cos(dayTime);
             sunLight.position.set(-45, sunY * 45, sunZ * 45); // Sudut matahari dinamis
 
-            const colorDay = new THREE.Color(0x87CEEB); const colorSunset = new THREE.Color(0xff8c42); const colorNight = new THREE.Color(0x0a0f25);
+            const colorDay = new THREE.Color(0x87CEEB); 
+            const colorSunrise = new THREE.Color(0xffb787); // Rona persik lembut untuk Pagi Hari
+            const colorSunset = new THREE.Color(0xff8c42);  // Rona oranye hangat untuk Sore Hari
+            const colorNight = new THREE.Color(0x0a0f25);
+            
             let skyColor = new THREE.Color();
             
             if (sunY > 0.3) {
-                skyColor = colorDay; isNight = false; sunLight.intensity = 1.15; hemiLight.intensity = 0.35; ambientLight.intensity = 0.25; starsMat.opacity = 0;
-            } else if (sunY > 0) {
-                let lerpFactor = (0.3 - sunY) / 0.3; skyColor.copy(colorDay).lerp(colorSunset, lerpFactor);
-                isNight = false; sunLight.intensity = 1.15 - (lerpFactor * 0.8); starsMat.opacity = lerpFactor * 0.5;
-            } else if (sunY > -0.3) {
-                let lerpFactor = (-sunY) / 0.3; skyColor.copy(colorSunset).lerp(colorNight, lerpFactor);
-                isNight = true; sunLight.intensity = 0; hemiLight.intensity = 0.15; ambientLight.intensity = 0.1; starsMat.opacity = 0.5 + (lerpFactor * 0.5);
+                // FULL SIANG
+                skyColor.copy(colorDay); 
+                isNight = false; 
+                sunLight.intensity = 1.15; 
+                hemiLight.intensity = 0.35; 
+                ambientLight.intensity = 0.25; 
+                starsMat.opacity = 0; 
+                playerHeadLight.intensity = 0; 
+                playerAmbientLight.intensity = 0;
+            } else if (sunY < -0.3) {
+                // FULL MALAM
+                skyColor.copy(colorNight); 
+                isNight = true; 
+                sunLight.intensity = 0; 
+                hemiLight.intensity = 0.15; 
+                ambientLight.intensity = 0.1; 
+                starsMat.opacity = 1; 
+                playerHeadLight.intensity = 2.5; 
+                playerAmbientLight.intensity = 1.0;
             } else {
-                skyColor = colorNight; isNight = true; sunLight.intensity = 0; starsMat.opacity = 1;
+                // TRANSISI HALUS (Tidak ada lagi loncatan/snap intensitas cahaya)
+                // Normalize sunY dari rentang [-0.3, 0.3] ke rentang [0.0 ke 1.0]
+                let t = (sunY + 0.3) / 0.6; 
+                isNight = (t < 0.5);
+                
+                // Menentukan arah matahari terbit (Pagi) atau terbenam (Sore) berdasarkan sumbu Z
+                const horizonColor = (sunZ < 0) ? colorSunset : colorSunrise;
+                
+                if (t > 0.5) {
+                    // Transisi: Horizon (0.5) menuju Siang Terang (1.0)
+                    let f = (t - 0.5) * 2.0; 
+                    skyColor.copy(horizonColor).lerp(colorDay, f);
+                    sunLight.intensity = lerp(0.4, 1.15, f);
+                    hemiLight.intensity = lerp(0.2, 0.35, f);
+                    ambientLight.intensity = lerp(0.15, 0.25, f);
+                    starsMat.opacity = lerp(0.5, 0, f);
+                } else {
+                    // Transisi: Malam Gelap (0.0) menuju Horizon (0.5)
+                    let f = t * 2.0; 
+                    skyColor.copy(colorNight).lerp(horizonColor, f);
+                    sunLight.intensity = lerp(0, 0.4, f);
+                    hemiLight.intensity = lerp(0.15, 0.2, f);
+                    ambientLight.intensity = lerp(0.1, 0.15, f);
+                    starsMat.opacity = lerp(1, 0.5, f);
+                }
+                
+                // Lampu mobil memudar/menyala secara mulus
+                playerHeadLight.intensity = lerp(2.5, 0, t);
+                playerAmbientLight.intensity = lerp(1.0, 0, t);
             }
-            scene.background = skyColor; scene.fog.color = skyColor;
-            playerHeadLight.intensity = isNight ? 2.5 : 0;
-            playerAmbientLight.intensity = isNight ? 1.0 : 0;
+            
+            scene.background = skyColor; 
+            scene.fog.color = skyColor;
+            // --------------------------------
 
             if(comboTimer > 0) {
                 comboTimer -= delta;

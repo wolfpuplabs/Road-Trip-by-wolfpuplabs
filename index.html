@@ -13,8 +13,9 @@
             font-family: 'Nunito', sans-serif; 
             background-color: #87CEEB; 
             user-select: none; -webkit-user-select: none; touch-action: manipulation; 
+            width: 100vw; height: 100dvh;
         }
-        canvas { display: block; width: 100vw; height: 100vh; }
+        canvas { display: block; width: 100vw; height: 100dvh; }
         
         /* UI HUD (Glassmorphism Soft) */
         #ui-container { position: absolute; top: 15px; left: 0; width: 100%; text-align: center; pointer-events: none; z-index: 100; display: none; }
@@ -754,11 +755,30 @@
             }, 50);
         }
 
+        // ==========================================
+        // 8. RESIZE & RESPONSIVE CAMERA (FIX)
+        // ==========================================
+        function updateCameraResponsive() {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.aspect = aspect;
+            
+            // Jika layar Portrait (HP), lebarkan FOV agar jalur pinggir terlihat
+            if (aspect < 1) {
+                camera.fov = 85; 
+            } else {
+                camera.fov = 55; // Normal untuk Landscape/PC
+            }
+            
+            camera.updateProjectionMatrix();
+        }
+
         window.addEventListener('resize', () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            updateCameraResponsive();
         });
+
+        // Panggil saat load pertama kali
+        updateCameraResponsive();
     </script>
 </body>
 </html>

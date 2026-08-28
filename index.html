@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Road Trip - Perfect Environment</title>
+    <title>Road Trip - Perfect Biomes</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap');
         
@@ -66,8 +66,8 @@
     <div id="damage-flash"></div>
 
     <div id="start-screen">
-        <h1 style="color:#FFC107; font-size: 55px; text-shadow: 4px 4px 0 #fff; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FF9800;">Perfect Vibe</span></h1>
-        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Fixed Rider Culling & Biomes!</p>
+        <h1 style="color:#FFC107; font-size: 55px; text-shadow: 4px 4px 0 #fff; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FF9800;">Epic Biomes</span></h1>
+        <p style="color: #444; font-size: 16px; font-weight: bold; margin-top: 15px; text-align: center;">Rider Fixed & Original Scale Restored!</p>
         
         <div id="loading-container"><div id="loading-bar"></div></div>
         <div id="loading-text">Memuat Dunia Magis... 0%</div>
@@ -102,12 +102,12 @@
     
     <script>
         // ==========================================
-        // 0. OFFLINE CACHE SYSTEM (Di-update agar force refresh)
+        // 0. OFFLINE CACHE SYSTEM (v8)
         // ==========================================
         async function setupOfflineCache() {
             if ('caches' in window) {
                 try {
-                    const cache = await caches.open('road-trip-assets-v7');
+                    const cache = await caches.open('road-trip-assets-v8');
                     const urlsToCache = [
                         'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
                         'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js',
@@ -124,7 +124,7 @@
         setupOfflineCache();
 
         // ==========================================
-        // 1. CURVED WORLD SHADER & TEXTURES
+        // 1. CURVED WORLD SHADER
         // ==========================================
         const curveUniforms = { curveX: { value: 0.0 }, curveY: { value: 0.0012 } };
 
@@ -168,7 +168,7 @@
         const coinTex = createCoinTexture();
 
         // ==========================================
-        // 2. AUDIO
+        // 2. AUDIO & SFX
         // ==========================================
         let audioCtx, engineOsc, engineGain;
         function initAudio() {
@@ -202,13 +202,14 @@
         }
 
         // ==========================================
-        // 3. SCENE & LIGHTING
+        // 3. SCENE & CAMERA (ORIGINAL SCALE)
         // ==========================================
         const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0x5DADE2, 30, 160); 
+        scene.fog = new THREE.Fog(0x5DADE2, 50, 180); 
         
+        // Kamera kembali ke posisi asli agar pemandangan luas & responsive
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 3.5, 7); camera.lookAt(0, 1, -10);
+        camera.position.set(0, 5.5, 11); camera.lookAt(0, 1, -15);
         
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -254,21 +255,22 @@
         oceanSea.position.set(180, -0.6, 0); 
         scene.add(oceanSea);
 
+        // Jalan Lebar (Original Scale 12)
         const roadMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0x3d3d3d, roughness: 0.8 }));
-        const road = new THREE.Mesh(new THREE.PlaneGeometry(8, 400, 1, 100), roadMat);
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(12, 400, 1, 100), roadMat);
         road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, 0); road.receiveShadow = true; scene.add(road);
 
         const curbMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ color: 0xd9d9d9, roughness: 0.8 }));
-        for (let side of [-4.2, 4.2]) {
+        for (let side of [-6.2, 6.2]) {
             const curb = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 400, 1, 1, 100), curbMat);
             curb.position.set(side, 0.1, 0); curb.receiveShadow = true; curb.castShadow = true; scene.add(curb);
         }
         
         let lines = [];
         const lineMat = applyCurvedWorld(new THREE.MeshBasicMaterial({ color: 0xffb300 }));
-        for (let laneX of [-1.3, 1.3]) {
+        for (let laneX of [-2, 2]) {
             for (let z = -150; z < 50; z += 15) {
-                const line = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 4), lineMat);
+                const line = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 6), lineMat);
                 line.rotation.x = -Math.PI / 2; line.position.set(laneX, 0.03, z); scene.add(line); lines.push(line);
             }
         }
@@ -285,14 +287,15 @@
         function spawnMountain(side) {
             const group = new THREE.Group();
             const height = Math.random() * 50 + 60; 
-            const radius = Math.random() * 20 + 30; 
+            const radius = Math.random() * 25 + 30; 
             
             const base = createMesh(new THREE.ConeGeometry(radius, height, 7), { color: 0x2E7D32, flatShading: true, roughness: 0.9 });
             base.position.y = height / 2; base.castShadow = true; group.add(base);
             const snow = createMesh(new THREE.ConeGeometry(radius * 0.45, height * 0.4, 7), { color: 0xffffff, flatShading: true, roughness: 0.9 });
             snow.position.y = height * 0.8; group.add(snow);
             
-            const posX = side * (Math.random() * 20 + 140);
+            // X Minimum 65 - Jarak AMAN agar tidak memotong jalan raya
+            const posX = side * (Math.random() * 25 + 75);
             group.position.set(posX, -5, -260); 
             scene.add(group); mountains.push(group);
         }
@@ -339,7 +342,6 @@
             const numTrees = Math.floor(Math.random() * 3) + 2; 
             for(let i=0; i<numTrees; i++) {
                 let tree;
-                // STRICT BIOME TREELINE
                 if (currentBiome === 0) tree = createTree('pine');
                 else if (currentBiome === 1) tree = createTree('round');
                 else tree = createPalmTree();
@@ -348,7 +350,8 @@
                 tree.scale.setScalar(0.8 + Math.random()*0.4);
                 clump.add(tree);
             }
-            const posX = side * (Math.random() * 20 + 25);
+            // Clump diletakkan agak jauh ke belakang pinggir jalan
+            const posX = side * (Math.random() * 15 + 25);
             clump.position.set(posX, 0, -220 + zOffset);
             clump.scale.setScalar(0.1); clump.userData.targetScale = 1; scene.add(clump); scenery.push(clump);
         }
@@ -375,7 +378,7 @@
             group.userData = { isHouse: true, winMat: winMat }; return group;
         }
 
-        // KENDARAAN & HEWAN 
+        // KENDARAAN (Original Detail & Size)
         function createCar() {
             const group = new THREE.Group();
             const colors = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047, 0x8e24aa];
@@ -398,28 +401,27 @@
                     group.add(wGroup); wheelGroups.push(wGroup);
                 }
             }
-            group.scale.setScalar(0.45); 
             group.userData = { type: 'car', driveSpeed: Math.random() * 0.15 + 0.1, wheels: wheelGroups, lights: lightMats }; return group;
         }
 
-        function createCow() { const group = new THREE.Group(); const body = createMesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), {color: 0xffffff, flatShading: true}); body.position.y = 1.2; body.castShadow = true; group.add(body); const head = createMesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), {color: 0xffffff, flatShading: true}); head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head); for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) { const leg = createMesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), {color: 0x222222, flatShading: true}); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg); } group.scale.setScalar(0.4); group.userData = { type: 'animal' }; return group; }
-        function createSheep() { const group = new THREE.Group(); const wool1 = createMesh(new THREE.DodecahedronGeometry(0.9, 0), {color: 0xf5f5f5, flatShading: true}); wool1.position.set(0, 1.1, 0); wool1.castShadow = true; group.add(wool1); const head = createMesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), {color: 0x3e2723, flatShading: true}); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head); for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) { const leg = createMesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), {color: 0x3e2723, flatShading: true}); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg); } group.scale.setScalar(0.4); group.userData = { type: 'animal' }; return group; }
+        function createCow() { const group = new THREE.Group(); const body = createMesh(new THREE.BoxGeometry(1.5, 1.2, 2.2), {color: 0xffffff, flatShading: true}); body.position.y = 1.2; body.castShadow = true; group.add(body); const head = createMesh(new THREE.BoxGeometry(0.9, 0.9, 1.0), {color: 0xffffff, flatShading: true}); head.position.set(0, 1.8, 1.2); head.castShadow = true; group.add(head); for(let x of [-0.5, 0.5]) for(let z of [-0.8, 0.8]) { const leg = createMesh(new THREE.BoxGeometry(0.3, 0.8, 0.3), {color: 0x222222, flatShading: true}); leg.position.set(x, 0.4, z); leg.castShadow = true; group.add(leg); } group.userData = { type: 'animal' }; return group; }
+        function createSheep() { const group = new THREE.Group(); const wool1 = createMesh(new THREE.DodecahedronGeometry(0.9, 0), {color: 0xf5f5f5, flatShading: true}); wool1.position.set(0, 1.1, 0); wool1.castShadow = true; group.add(wool1); const head = createMesh(new THREE.BoxGeometry(0.6, 0.6, 0.7), {color: 0x3e2723, flatShading: true}); head.position.set(0, 1.4, 0.8); head.castShadow = true; group.add(head); for(let x of [-0.3, 0.3]) for(let z of [-0.4, 0.4]) { const leg = createMesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), {color: 0x3e2723, flatShading: true}); leg.position.set(x, 0.3, z); leg.castShadow = true; group.add(leg); } group.userData = { type: 'animal' }; return group; }
 
         function createPackage() {
             const group = new THREE.Group();
-            const box = createMesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), { color: 0x8d6e63, roughness: 0.8 }); group.add(box);
-            const tape = createMesh(new THREE.BoxGeometry(0.82, 0.82, 0.2), { color: 0xe0c097, roughness: 0.9 }); group.add(tape);
-            group.scale.setScalar(0.6); group.castShadow = true; group.userData = {type: 'box'}; return group;
+            const box = createMesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), { color: 0x8d6e63, roughness: 0.8 }); group.add(box);
+            const tape = createMesh(new THREE.BoxGeometry(1.22, 1.22, 0.3), { color: 0xe0c097, roughness: 0.9 }); group.add(tape);
+            group.castShadow = true; group.userData = {type: 'box'}; return group;
         }
 
         function createCoin() { 
             const coinMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ map: coinTex, color: 0xffffff, emissive: 0x442200, roughness: 0.2, metalness: 0.8 }));
-            const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.1), coinMat);
-            coin.rotation.x = Math.PI / 2; coin.position.y = 0.6; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin; 
+            const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.15), coinMat);
+            coin.rotation.x = Math.PI / 2; coin.position.y = 1.0; coin.castShadow = true; coin.userData = { type: 'coin' }; return coin; 
         }
 
-        function createRamp() { const r=createMesh(new THREE.BoxGeometry(2.5,0.2,3), {color:0x8B4513, flatShading:true}); r.rotation.x=Math.PI/12; r.position.y=0.3; r.userData={type:'ramp'}; r.castShadow=true; return r; }
-        function createOil() { const group = new THREE.Group(); const oilMat = {color: 0x111111, roughness: 0.05, metalness: 0.85}; const base = createMesh(new THREE.CylinderGeometry(1.2, 1.2, 0.04, 12), oilMat); base.position.y=0.02; group.add(base); const blob1 = createMesh(new THREE.CylinderGeometry(0.6, 0.6, 0.04, 10), oilMat); blob1.position.set(0.8, 0.02, 0.4); group.add(blob1); group.userData={type:'oil'}; return group; }
+        function createRamp() { const r=createMesh(new THREE.BoxGeometry(3,0.2,4), {color:0x8B4513, flatShading:true}); r.rotation.x=Math.PI/12; r.position.y=0.5; r.userData={type:'ramp'}; r.castShadow=true; return r; }
+        function createOil() { const group = new THREE.Group(); const oilMat = {color: 0x111111, roughness: 0.05, metalness: 0.85}; const base = createMesh(new THREE.CylinderGeometry(1.5, 1.5, 0.04, 12), oilMat); base.position.y=0.02; group.add(base); const blob1 = createMesh(new THREE.CylinderGeometry(0.8, 0.8, 0.04, 10), oilMat); blob1.position.set(1.0, 0.02, 0.6); group.add(blob1); group.userData={type:'oil'}; return group; }
 
         // ==========================================
         // 6. PLAYER, MANAGER & CONTROLS
@@ -458,30 +460,37 @@
         const loader = new THREE.GLTFLoader(manager);
         loader.load('Ngantor rider.glb', function(gltf) {
             playerModel = gltf.scene; 
-            playerModel.scale.set(1.1, 1.1, 1.1); 
             playerModel.rotation.y = Math.PI;
             
-            // ANTI CULLING FIX: Memaksa semua part/tulang karakter agar selalu dirender
+            // ANTI CULLING - Agar tulang mesh tidak disembunyikan saat dekat kamera
             playerModel.traverse(n => { 
                 if (n.isMesh) { 
                     n.castShadow = true; 
                     n.receiveShadow = true; 
-                    n.frustumCulled = false; // INI FIX UNTUK RIDER YANG HILANG
+                    n.frustumCulled = false; 
                 } 
             });
-            playerGroup.add(playerModel);
             
-            try { const box = new THREE.Box3().setFromObject(playerModel); playerModel.position.y = -box.min.y + 0.02; } catch(e) { playerModel.position.y = 0; }
+            // MENGGUNAKAN WRAPPER UNTUK SCALE (Agar tidak memecah animasi bawaan glb)
+            const wrapper = new THREE.Group();
+            wrapper.scale.set(2.4, 2.4, 2.4); 
+            wrapper.add(playerModel);
+            playerGroup.add(wrapper);
+            
+            try { 
+                const box = new THREE.Box3().setFromObject(playerModel); 
+                playerModel.position.y = -box.min.y; 
+            } catch(e) { playerModel.position.y = 0; }
             
             if (gltf.animations.length > 0) { 
                 mixer = new THREE.AnimationMixer(playerModel); 
-                // PLAY SEMUA ANIMASI (berjaga-jaga jika mesh rider dan motor dipisah animasinya)
                 gltf.animations.forEach(clip => mixer.clipAction(clip).play()); 
             }
         });
 
-        function moveLeft() { if(playerTargetX > -2.5 && !isJumping) playerTargetX -= 2.5; }
-        function moveRight() { if(playerTargetX < 2.5 && !isJumping) playerTargetX += 2.5; }
+        // Kontrol jalan kembali ke lebar normal (-4, 0, 4)
+        function moveLeft() { if(playerTargetX > -4 && !isJumping) playerTargetX -= 4; }
+        function moveRight() { if(playerTargetX < 4 && !isJumping) playerTargetX += 4; }
         window.addEventListener('keydown', (e) => { if(e.key==='ArrowLeft'||e.key==='a') moveLeft(); if(e.key==='ArrowRight'||e.key==='d') moveRight(); });
         document.getElementById('btn-left').addEventListener('touchstart', (e)=>{e.preventDefault(); moveLeft();}, {passive:false});
         document.getElementById('btn-left').addEventListener('mousedown', (e)=>{e.preventDefault(); moveLeft();});
@@ -505,15 +514,15 @@
         function createExplosion(x, y, z, colorHex) {
             const mat = applyCurvedWorld(new THREE.MeshBasicMaterial({color: colorHex}));
             for(let i=0; i<12; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), mat);
-                const angle = Math.random() * Math.PI * 2; const spd = Math.random() * 0.4 + 0.1;
-                p.position.set(x, y, z); p.userData = { vx: Math.cos(angle)*spd, vy: Math.random()*0.4 + 0.2, vz: Math.sin(angle)*spd, life: 1 };
+                const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), mat);
+                const angle = Math.random() * Math.PI * 2; const spd = Math.random() * 0.4 + 0.2;
+                p.position.set(x, y, z); p.userData = { vx: Math.cos(angle)*spd, vy: Math.random()*0.5 + 0.2, vz: Math.sin(angle)*spd, life: 1 };
                 scene.add(p); particles.push(p);
             }
         }
 
         // ==========================================
-        // 7. GAME LOOP & BIOMES
+        // 7. GAME LOOP & STRICT BIOMES
         // ==========================================
         const lerp = (a, b, t) => a + (b - a) * t; 
         let frameCount = 0;
@@ -521,15 +530,14 @@
         function spawnDenseScenery(side, zOffset) {
             const rand = Math.random(); let obj;
             
-            // LOGIKA BIOMA YANG BENAR
             if (currentBiome === 0) { 
                 // Bioma 0: Pegunungan
                 if(rand < 0.75) obj = createTree('pine'); else if(rand < 0.9) obj = createLog(); else obj = createRock(); 
             } else if (currentBiome === 1) { 
-                // Bioma 1: Farm
+                // Bioma 1: Farm (Dataran Terbuka)
                 if(side === -1 && rand < 0.15) obj = createVillageHouse(); else if(rand < 0.3) obj = createFence(); else if(rand < 0.5) obj = createFlower(); else if(rand < 0.7) obj = createTallGrass(); else obj = createTree('round');
             } else { 
-                // Bioma 2: Pantai
+                // Bioma 2: Pantai (Laut dikanan)
                 if(side === 1) {
                     if(rand < 0.4) obj = createUmbrella(); else obj = createPalmTree();
                 } else {
@@ -538,12 +546,12 @@
             }
             
             if(obj) { 
-                let offset = 6 + Math.random() * 8;
-                if (obj.userData.isHouse) offset = 12 + Math.random() * 4; 
-                if (obj.userData.isUmbrella) offset = 10 + Math.random() * 6;
+                let offset = 9 + Math.random() * 10;
+                if (obj.userData.isHouse) offset = 16 + Math.random() * 6; 
+                if (obj.userData.isUmbrella) offset = 14 + Math.random() * 8;
                 
                 obj.position.set(side * offset, 0, -180 + zOffset); 
-                obj.scale.setScalar(0.08); obj.userData.targetScale = 0.8; scene.add(obj); scenery.push(obj); 
+                obj.scale.setScalar(0.1); obj.userData.targetScale = 1.0; scene.add(obj); scenery.push(obj); 
             }
         }
 
@@ -565,14 +573,14 @@
             }
             positions.needsUpdate = true;
 
-            // TRANSISI BIOMA SETIAP SKOR 1500 (LEBIH CEPAT GANTI)
+            // TRANSISI BIOMA SETIAP SKOR 1500 (GANTI CEPAT UNTUK DITES)
             currentBiome = Math.floor(score / 1500) % 3;
-            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } // Hijau Gelap
-            else if (currentBiome === 1) { targetGroundColor.setHex(0x689F38); } // Hijau Terang (Rumput)
-            else { targetGroundColor.setHex(0xEED49F); } // Pasir
+            if (currentBiome === 0) { targetGroundColor.setHex(0x2E4F2A); } // Hutan
+            else if (currentBiome === 1) { targetGroundColor.setHex(0x689F38); } // Rumput Cerah
+            else { targetGroundColor.setHex(0xEED49F); } // Pasir Pantai
             grassGroundMat.color.lerp(targetGroundColor, 0.02); 
 
-            let targetOceanX = currentBiome === 2 ? 40 : 180; 
+            let targetOceanX = currentBiome === 2 ? 60 : 180; 
             oceanSea.position.x += (targetOceanX - oceanSea.position.x) * 0.02;
 
             if (audioCtx && engineOsc) { const currentPitch = 40 + ((speed - 0.65) * 180); engineOsc.frequency.setTargetAtTime(currentPitch, audioCtx.currentTime, 0.1); }
@@ -615,18 +623,18 @@
             if (playerGroup.position.y > 0) { playerVelocityY += gravity; isJumping = true; playerGroup.rotation.x = -0.15; } 
             else { if(isJumping) cameraShake = 0.3; playerGroup.position.y = 0; playerVelocityY = 0; isJumping = false; playerGroup.rotation.x = 0; }
             
-            camera.position.y = 3.5 + (playerGroup.position.y * 0.3); 
-            camera.position.z = 7 + (speed - 0.65) * 5; 
+            camera.position.y = 5.5 + (playerGroup.position.y * 0.3); 
+            camera.position.z = 11 + (speed - 0.65) * 10; 
             if (cameraShake > 0) { camera.position.y += (Math.random() - 0.5) * cameraShake; camera.position.x += (Math.random() - 0.5) * cameraShake; cameraShake *= 0.9; }
 
-            // SPAWNERS GUNUNG (HANYA MUNCUL DI PEGUNUNGAN & KIRI PANTAI)
+            // SPAWNERS GUNUNG - HANYA DI BIOMA TERTENTU
             if (frameCount % 45 === 0) { 
                 if (currentBiome === 0) {
                     spawnMountain(1); spawnMountain(-1); 
                 } else if (currentBiome === 2) {
-                    spawnMountain(-1); // Hanya sisi kiri pada pantai
+                    spawnMountain(-1); // Pantai, Gunung cuma di kiri
                 }
-                // Bioma 1 (Farm) TIDAK ADA GUNUNG
+                // Bioma 1 = Tidak ada gunung (Farm terbuka)
             }
             if (frameCount % 15 === 0) { spawnTreeline(1, 0); spawnTreeline(-1, 0); } 
             
@@ -637,19 +645,18 @@
             
             if (frameCount % 60 === 0) {
                 let obj; const rand = Math.random(); if (rand < 0.6) obj = createCar(); else if (rand < 0.8) obj = createRamp(); else obj = createOil();
-                obj.position.set([-2.5, 0, 2.5][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
+                obj.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 0, -180); scene.add(obj); obstacles.push(obj);
             }
-            // HEWAN HANYA MUNCUL DI FARM (BIOME 1)
             if (frameCount % 180 === 0 && currentBiome === 1) { 
                 let animal = Math.random() > 0.5 ? createCow() : createSheep(); let startSide = Math.random() > 0.5 ? 1 : -1; 
-                animal.position.set(startSide * 5, 0, -180); animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; animal.userData.speedX = startSide === 1 ? -0.04 : 0.04; scene.add(animal); obstacles.push(animal);
+                animal.position.set(startSide * 7, 0, -180); animal.rotation.y = startSide === 1 ? -Math.PI/2 : Math.PI/2; animal.userData.speedX = startSide === 1 ? -0.04 : 0.04; scene.add(animal); obstacles.push(animal);
             }
             if (frameCount % 85 === 0) {
-                const pkg = createPackage(); pkg.position.set([-2.5, 0, 2.5][Math.floor(Math.random() * 3)], 1, -180); scene.add(pkg); packages.push(pkg);
+                const pkg = createPackage(); pkg.position.set([-4, 0, 4][Math.floor(Math.random() * 3)], 1, -180); scene.add(pkg); packages.push(pkg);
             }
             if (frameCount % 120 === 0) {
-                const lane = [-2.5, 0, 2.5][Math.floor(Math.random() * 3)];
-                for(let i=0; i<3; i++){ const coin = createCoin(); coin.position.set(lane, 0.7, -180 - (i * 4)); scene.add(coin); packages.push(coin); }
+                const lane = [-4, 0, 4][Math.floor(Math.random() * 3)];
+                for(let i=0; i<3; i++){ const coin = createCoin(); coin.position.set(lane, 1.0, -180 - (i * 4)); scene.add(coin); packages.push(coin); }
             }
 
             for (let i = 0; i < lines.length; i++) { lines[i].position.z += speed; if (lines[i].position.z > 30) lines[i].position.z -= 180; }
@@ -692,7 +699,7 @@
                 pkg.position.z += speed; 
                 pkg.userData.type === 'coin' ? pkg.rotation.z -= 0.08 : pkg.rotation.y += 0.05; 
 
-                if (Math.abs(pkg.position.z - playerGroup.position.z) < 2.0 && Math.abs(pkg.position.x - playerGroup.position.x) < 1.2 && !isJumping) {
+                if (Math.abs(pkg.position.z - playerGroup.position.z) < 2.5 && Math.abs(pkg.position.x - playerGroup.position.x) < 1.5 && !isJumping) {
                     comboTimer = 2.0; const comboEl = document.getElementById('combo-container');
                     comboEl.style.opacity = '1'; comboEl.style.transform = 'scale(1.2)'; setTimeout(()=> comboEl.style.transform = 'scale(1)', 100);
                     document.getElementById('combo-text').innerText = combo;
@@ -715,11 +722,11 @@
                 if (obs.userData.type === 'car') { obs.position.z += obs.userData.driveSpeed; obs.userData.wheels.forEach(w => w.rotation.x -= 0.15); obs.userData.lights.forEach(hl => hl.opacity = isNight ? 0.6 : 0); } 
                 else if (obs.userData.type === 'animal') { obs.position.x += obs.userData.speedX; obs.position.y = Math.abs(Math.sin(frameCount * 0.2)) * 0.4; }
                 
-                let hitDistZ = 2.0; let hitDistX = 1.2; if(obs.userData.type === 'animal') { hitDistZ = 1.2; hitDistX = 1.0; }
+                let hitDistZ = 2.5; let hitDistX = 1.8; if(obs.userData.type === 'animal') { hitDistZ = 1.5; hitDistX = 1.5; }
 
                 if (Math.abs(obs.position.z - playerGroup.position.z) < hitDistZ && Math.abs(obs.position.x - playerGroup.position.x) < hitDistX) {
                     if (obs.userData.type === 'ramp' && !isJumping) { playerVelocityY = 0.38; obs.userData.type = 'used'; playSfx('jump'); } 
-                    else if (obs.userData.type === 'oil' && !isJumping) { playSfx('slip'); let avail = [-2.5, 0, 2.5].filter(l => l !== playerTargetX); playerTargetX = avail[Math.floor(Math.random() * 2)]; combo = 1; obs.position.y = -10; } 
+                    else if (obs.userData.type === 'oil' && !isJumping) { playSfx('slip'); let avail = [-4, 0, 4].filter(l => l !== playerTargetX); playerTargetX = avail[Math.floor(Math.random() * 2)]; combo = 1; obs.position.y = -10; } 
                     else if ((obs.userData.type === 'car' || obs.userData.type === 'animal') && playerGroup.position.y < 1.0) { isGameOver = true; cameraShake = 1.0; crashGame(obs.userData.type === 'animal' ? "Nabrak Hewan!" : "Nabrak Mobil!"); }
                 }
                 if (obs.position.z > 40) { scene.remove(obs); obstacles.splice(i, 1); }

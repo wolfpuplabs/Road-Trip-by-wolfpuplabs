@@ -97,7 +97,7 @@
 
     <div id="start-screen">
         <h1 style="color:#FFF; font-size: 45px; text-shadow: 3px 3px 0 #FF9800, -1px -1px 0 #FF9800, 1px -1px 0 #FF9800, -1px 1px 0 #FF9800; margin: 0; text-align: center; line-height: 1.1;">ROAD TRIP<br><span style="font-size: 30px; color: #FFF200; text-shadow: 2px 2px 0 #E65100;">Pro Vibes</span></h1>
-        <p style="color: #444; font-size: 15px; font-weight: bold; margin-top: 15px; text-align: center; text-shadow: 1px 1px 0 #fff;">Contrast Fix & Dynamic Ocean!</p>
+        <p style="color: #444; font-size: 15px; font-weight: bold; margin-top: 15px; text-align: center; text-shadow: 1px 1px 0 #fff;">Fixed Mountain Bounds!</p>
         
         <div id="loading-container"><div id="loading-bar"></div></div>
         <div id="loading-text">Memuat Dunia Magis... 0%</div>
@@ -134,7 +134,7 @@
         async function setupOfflineCache() {
             if ('caches' in window) {
                 try {
-                    const cache = await caches.open('road-trip-assets-v18');
+                    const cache = await caches.open('road-trip-assets-v19');
                     const urlsToCache = [
                         'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
                         'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js',
@@ -252,7 +252,6 @@
         });
         const skyDome = new THREE.Mesh( skyGeo, skyMat ); scene.add( skyDome );
 
-        // FIX LIGHTING: Ambient & Hemi diturunkan untuk kontras. Intensitas Sun dinaikkan agar bayangan & sudut objek (low-poly) lebih tajam
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.35); scene.add(ambientLight);
         const hemiLight = new THREE.HemisphereLight(0xE3F2FD, 0x424242, 0.4); scene.add(hemiLight);
         
@@ -263,7 +262,7 @@
         sunLight.shadow.camera.left = -35; sunLight.shadow.camera.right = 35;
         sunLight.shadow.camera.top = 35; sunLight.shadow.camera.bottom = -35;
         sunLight.shadow.bias = -0.0005; 
-        sunLight.shadow.normalBias = 0.02; // Diturunkan agar detail 3D (self-shadow) kembali muncul
+        sunLight.shadow.normalBias = 0.02;
         scene.add(sunLight);
 
         const sunMat = new THREE.MeshBasicMaterial({ map: sunGlowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
@@ -283,7 +282,6 @@
         grassGround.rotation.x = -Math.PI / 2; grassGround.position.set(0, 0, 0); 
         grassGround.receiveShadow = true; scene.add(grassGround);
 
-        // FIX LAUT: Warna diubah jadi biru cerah ceria (0x29B6F6) dan sangat reflektif terhadap cahaya (metalness naik)
         const oceanGeo = new THREE.PlaneGeometry(180, 400, 40, 100);
         const oceanMat = applyCurvedWorld(new THREE.MeshStandardMaterial({ 
             color: 0x29B6F6, flatShading: true, roughness: 0.1, metalness: 0.8, 
@@ -383,8 +381,8 @@
             const base = createMesh(new THREE.ConeGeometry(radius, height, 7), { color: 0x4D7C0F, flatShading: true, roughness: 1.0 }); base.position.y = height / 2; base.castShadow = true; group.add(base);
             const snow = createMesh(new THREE.ConeGeometry(radius * 0.45, height * 0.4, 7), { color: 0xffffff, flatShading: true, roughness: 1.0 }); snow.position.y = height * 0.8; group.add(snow);
             
-            // FIX GUNUNG: Ditarik lebih dekat (sebelumnya 75+, sekarang jaraknya antara 35 hingga 65 dari jalan)
-            const posX = side * (Math.random() * 30 + 35); 
+            // FIX GUNUNG: Dikembalikan ke jarak aman (antara 65 hingga 90) agar kaki gunung tidak menelan jalan
+            const posX = side * (Math.random() * 25 + 65); 
             group.position.set(posX, -5, -260); scene.add(group); mountains.push(group);
         }
 
@@ -573,7 +571,6 @@
 
             curveUniforms.curveX.value = Math.sin(time * 0.4) * 0.0006; curveUniforms.curveY.value = Math.sin(time * 0.3) * 0.001 + 0.001; 
 
-            // FIX OMBAK: Amplitude ombak diperbesar (0.5) agar pantulannya sangat kentara & ombak terlihat hidup
             const positions = oceanSea.geometry.attributes.position;
             for (let i = 0; i < positions.count; i++) { 
                 const u = positions.getX(i); 
@@ -651,11 +648,10 @@
             else { if(isJumping) cameraShake = 0.3; playerGroup.position.y = 0; playerVelocityY = 0; isJumping = false; playerGroup.rotation.x = 0; }
             if (cameraShake > 0) { camera.position.y += (Math.random() - 0.5) * cameraShake; camera.position.x += (Math.random() - 0.5) * cameraShake; cameraShake *= 0.9; }
 
-            // FIX SPAWNER GUNUNG: Gunung boleh muncul di KIRI pada bioma pantai (Bioma 2)
             if (frameCount % 60 === 0) { 
                 if (currentBiome === 0) { spawnMountain(1); spawnMountain(-1); } 
                 else if (currentBiome === 1) { spawnMountain(-1); if(Math.random() > 0.5) spawnMountain(1); } 
-                else if (currentBiome === 2) { spawnMountain(-1); } // Gunung tetap muncul di kiri saat di pantai
+                else if (currentBiome === 2) { spawnMountain(-1); } 
             }
             
             if (frameCount % 15 === 0) { spawnTreeline(1, 0); spawnTreeline(-1, 0); } 
@@ -670,7 +666,6 @@
             
             for (let i = mountains.length - 1; i >= 0; i--) { 
                 mountains[i].position.z += speed * 0.15; 
-                // Tidak ada lagi logika membuang gunung ke bawah tanah secara kasar. Gunung di kanan dibiarkan terlewat.
                 if (mountains[i].position.z > 20) { scene.remove(mountains[i]); mountains.splice(i, 1); } 
             }
             
